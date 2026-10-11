@@ -21,6 +21,7 @@ One engine serves several hosts and styles:
 3. [docs/design/future-ideas.md](docs/design/future-ideas.md): parked ideas (GPU engine, map engine), each with its trigger.
 4. [docs/research/](docs/research/README.md): 71 case studies and measurements of the hand-drawn ornament.
 5. [docs/design/background/](docs/design/README.md): gap studies, the curve catalog, five competing proposals and the judges' reviews.
+6. [docs/references/](docs/references/README.md): the AI-generated reference images and the scan of the pencil sketch. They are inspiration, not specs.
 
 ## Sites
 
