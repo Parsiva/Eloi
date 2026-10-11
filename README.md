@@ -22,6 +22,10 @@ One engine serves several hosts and styles:
 4. [docs/research/](docs/research/README.md): 71 case studies and measurements of the hand-drawn ornament.
 5. [docs/design/background/](docs/design/README.md): gap studies, the curve catalog, five competing proposals and the judges' reviews.
 
+## Sites
+
+- **[sites/portfolio/](sites/portfolio/)**: the portfolio blog (Parkington Programs Studio) as it stood on 2026-10-11. It is Vue 3 + Vite + Supabase with the old SVG frame engine (`src/frames/`) and the hand-drawn ornament sprite (`src/ornaments/`). It is the first host Eloi will replace from the inside out. To run it: `cd sites/portfolio && npm ci && npm run dev`. Content needs a `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; it is not committed. Its git history stays in [Parsiva/ParkingtonPrograms](https://github.com/Parsiva/ParkingtonPrograms).
+
 ## Source art
 
-The hand-drawn ornament, and the sprite it is cut into, live in the portfolio repo [Parsiva/ParkingtonPrograms](https://github.com/Parsiva/ParkingtonPrograms) (branch `ornaments-first-pass`, `src/ornaments/`). The analysis scripts in `docs/research/analysis/` read that sprite from `../../../src/ornaments/`. To re-run them, copy the sprite there.
+The hand-drawn ornament and the sprite cut from it are in [sites/portfolio/src/ornaments/](sites/portfolio/src/ornaments/). The cutter is `sites/portfolio/scripts/cut-ornaments.mjs` (`npm run ornaments`). The analysis scripts in `docs/research/analysis/` read the sprite from there.

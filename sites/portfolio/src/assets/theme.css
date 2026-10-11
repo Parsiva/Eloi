@@ -1,0 +1,61 @@
+@font-face{
+  font-family: "Old London";
+  src: url("/OldLondon.ttf") format("truetype"); /* from /public */
+  font-display: swap;
+}
+
+
+:root{
+  /* match this to your tile’s native px size */
+  --tile-size: 1024px;
+}
+
+/* LIGHT mode body background */
+body{
+  background-color: #e4dac0;
+  background-image: none;
+}
+
+.wrap-trim{
+  float: left;
+  width: 120px;           /* fixed pixels so it never scales */
+  height: 70vh;           /* or exact px height of your artwork */
+  opacity: .0;
+  pointer-events: none;
+}
+
+
+:root{ --strip-w: 112px; } /* set the width you like */
+
+.left-border{
+  display: none;
+}
+
+/* Content offset so nothing sits under the strip */
+.main-container{ margin-left: auto; }
+
+/* Responsive: hide the strip on small screens */
+@media (max-width: 768px){
+  .left-border{ display: none; }
+  .main-container{ margin-left: auto; }
+}
+
+
+/* Optional: drop cap utility for first paragraph in articles */
+.drop-cap::first-letter{
+  float: left;
+  font-family: "Old London", serif;
+  font-size: 3.5em;
+  line-height: .85;
+  margin: .12em .2em 0 0;
+  color: #7a5a3d;
+}
+
+/* Old London (display) */
+@font-face {
+  font-family: "Old London";
+  src: url("/OldLondon.ttf") format("truetype");
+  font-display: swap;
+}
+
+.font-oldlondon { font-family: "Old London", serif !important; }
