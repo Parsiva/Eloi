@@ -7,6 +7,7 @@ Images that shaped Eloi's design. **They are inspiration, not specs.** They show
 | | |
 |---|---|
 | ![Pencil frame sketch](hand-drawn/pencil-frame-sketch.jpg) | **Pencil frame sketch.** The owner's own drawing: a medallion corner, a twisted ribbon stem, side leaf, crest, jewel pendant, lattice cartouche, flame corner and tailpiece. Traced in Illustrator, it became `sites/portfolio/src/ornaments/source/websiteVectorOutline.svg` and the `hand-drawn.svg` sprite. Measured in [research/07](../research/07-drawing-analysis.md). |
+| ![Mid-century frame trace](hand-drawn/midcentury-frame-trace.svg) | **Mid-century frame trace** (`websiteOutline.svg`, 443 × 671). The owner's flat-colour trace of the frame in the [mid-century county map](ai-generated/midcentury-california-county-map-a.webp): nested moulding bands, square corner blocks and an inset cartouche in a teal, sand and cream palette. It is the starting art for the city game's style. |
 
 ## AI-generated
 
