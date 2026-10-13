@@ -60,7 +60,8 @@ export const benches: Bench[] = [
     step: 'after S3',
     proves: 'Structure and style are separate.',
     doneWhen: 'The same frame spec is drawn as the Victorian chronicle and as mid-century moulding.',
-    status: 'planned',
+    status: 'done',
+    load: () => import('./skins'),
   },
   {
     id: 'motion',
@@ -69,7 +70,8 @@ export const benches: Bench[] = [
     proves: 'Changing route animates the frame, not the content.',
     doneWhen:
       'Route changes diff boxes by stable id; shared boxes update in place; chevrons run along a straight track; reduced motion works.',
-    status: 'planned',
+    status: 'done',
+    load: () => import('./motion'),
   },
 ]
 

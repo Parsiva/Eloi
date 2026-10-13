@@ -338,6 +338,60 @@
     gap: 1rem;
   }
 
+  /* Motion bench */
+  .eloi-frame[data-frame="motion"] {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .motion-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3.5rem;
+  }
+
+  .motion-nav__link {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.4em 0.2em;
+  }
+
+  .motion-nav__link[aria-current="page"] {
+    color: #b8863f;
+  }
+
+  .motion-title {
+    font-size: 1.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .motion-list {
+    padding-left: 1.1em;
+  }
+
+  .motion-list li {
+    margin-bottom: 0.5em;
+  }
+
+  .motion-foot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: 420ms;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
   /* Dev panel: deliberately plain, so it never reads as part of the design under test. */
   .devpanel {
     position: fixed;

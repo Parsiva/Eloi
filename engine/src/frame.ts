@@ -52,7 +52,9 @@ export interface FrameHandle {
   readonly spec: FrameSpec
   readonly stats: ReadonlySignal<FrameStats>
   readonly route: ReadonlySignal<string | undefined>
-  setRoute(route: string): Promise<void>
+  // Change route; `during` runs inside the view transition (update boxes' inputs there, so the
+  // "before" snapshot still shows the old state).
+  setRoute(route: string, during?: () => void): Promise<void>
   setSkin(skin: Skin): void
   setReducedMotion(value: 'auto' | boolean): void
   setOverlay(overlay: Overlay): void
@@ -507,9 +509,10 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
     spec,
     stats,
     route,
-    setRoute: (next) =>
+    setRoute: (next, during) =>
       changeStructure(() => {
         route.value = next
+        during?.()
       }),
     setSkin(next) {
       skin = next

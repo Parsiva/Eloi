@@ -12,7 +12,7 @@ One engine serves several hosts and styles:
 | City guessing game | mid-century flat-colour mouldings |
 | isidex | framing around the app (later) |
 
-**Status:** S0 of the [sandbox plan](docs/design/sandbox.md) is done (the sandbox runs; the engine is still empty). Code lives here as `engine/`, built and tested in `sandbox/`, a dev-only test-bench site ([plan](docs/design/sandbox.md)). The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
+**Status:** the [sandbox plan](docs/design/sandbox.md) is built: the engine draws frames, hosts boxes and runs six benches (Grid, Boxes, Chronicle, Specimens, Skins, Motion). No compiler yet. Code lives here as `engine/`, built and tested in `sandbox/`, a dev-only test-bench site ([plan](docs/design/sandbox.md)). The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
 
 ## Read
 
