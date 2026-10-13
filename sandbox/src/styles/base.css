@@ -284,6 +284,60 @@
     text-align: center;
   }
 
+  /* Specimens bench */
+  .specimens__heading {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.3rem;
+    margin: 1.5rem 0 1rem;
+  }
+
+  .specimens__grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 2rem;
+  }
+
+  .specimen {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--ink);
+  }
+
+  .specimen--tile {
+    margin-bottom: 1.5rem;
+  }
+
+  .specimen__art {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+
+  .specimen__svg,
+  .specimen__strip {
+    display: block;
+    overflow: visible;
+  }
+
+  .specimen figcaption,
+  .specimen__fit span {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78rem;
+  }
+
+  .specimen__fit {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
   /* Dev panel: deliberately plain, so it never reads as part of the design under test. */
   .devpanel {
     position: fixed;

@@ -52,7 +52,7 @@ export function retainSprite(prefix: string, svg: string): () => void {
   let entry = sprites.get(prefix)
   if (!entry) {
     const holder = document.createElement('div')
-    holder.innerHTML = svg
+    holder.innerHTML = weighted(svg)
     const el = holder.firstElementChild!
     el.setAttribute('aria-hidden', 'true')
     ;(el as SVGElement).style.cssText = 'position:absolute;width:0;height:0;overflow:hidden'
@@ -69,4 +69,12 @@ export function retainSprite(prefix: string, svg: string): () => void {
       sprites.delete(prefix)
     }
   }
+}
+
+// Stroke widths in a sprite are multiplied by --eloi-weight, which a placement sets so its lines
+// keep a chosen hair weight at any scale (frame-engine.md §3.1: line weights don't grow with m).
+export function weighted(svg: string): string {
+  return svg.replace(/(<[a-z]+\b[^>]*?)\sstroke-width="([\d.]+)"/gi, (whole, start: string, width: string) =>
+    /\sstyle=/.test(start) ? whole : `${start} style="stroke-width:calc(var(--eloi-weight, 1) * ${width}px)"`,
+  )
 }

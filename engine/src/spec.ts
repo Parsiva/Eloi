@@ -78,7 +78,7 @@ export type Stratum =
   | { kind: 'gap'; depth: number }
   | { kind: 'fill'; depth: number; role: string }
   | { kind: 'hatch'; depth: number; role?: string; pitch?: number; angle?: number; weight?: number }
-  | { kind: 'tile'; depth: number; tile: string; role?: string }
+  | { kind: 'tile'; depth: number; tile: string; role?: string; weight?: number }
 
 export type Corner = 'tl' | 'tr' | 'bl' | 'br'
 export type Edge = 'top' | 'right' | 'bottom' | 'left'
@@ -86,7 +86,7 @@ export type Edge = 'top' | 'right' | 'bottom' | 'left'
 export type CornerTreatment =
   | { kind: 'mitre' }
   | { kind: 'block'; roles: string[] } // a square stud: nested squares, outside role first
-  | { kind: 'motif'; piece: string; width: number; role?: string; offset?: [number, number] }
+  | { kind: 'motif'; piece: string; width: number; role?: string; offset?: [number, number]; weight?: number; knockout?: boolean }
 
 export type Anchor =
   | { corner: Corner }
@@ -118,6 +118,8 @@ export type Member =
       offset?: [number, number] // in m
       mirror?: 'x' | 'y' | 'xy'
       role?: string
+      weight?: number // px: the sprite's thinnest line drawn at this weight, whatever the scale
+      knockout?: boolean // cut the piece's hull out of everything drawn under the motifs
       minWidth?: number // hide below this bay width (px)
     }
   | {
@@ -128,6 +130,7 @@ export type Member =
       height: number // in m (tile's cross size)
       inset?: number // in m, from the edge toward the inside
       role?: string
+      weight?: number
     }
   | {
       kind: 'chevrons' // chevrons along a band's centre line; optionally conveyed
@@ -157,5 +160,6 @@ export interface SpritePiece {
 export interface Sprite {
   svg: string // contains <symbol id="{prefix}{piece}">
   prefix: string // e.g. 'hd-'
+  hair?: number // the thinnest stroke width in the drawing's own units (default 0.5)
   pieces: Record<string, SpritePiece>
 }

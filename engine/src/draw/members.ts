@@ -56,7 +56,9 @@ export function drawMembers(input: DrawInput): Drawn {
 
 class Painter {
   private defs: string[] = []
-  private body: string[] = []
+  private body: string[] = [] // rings, rules, repeats, chevrons: masked by knockouts
+  private over: string[] = [] // motifs and markers, drawn on top
+  private holes: string[] = [] // knockout hulls
   private patterns = new Set<string>()
   private clips = 0
   private marker?: { x: number }
@@ -64,8 +66,15 @@ class Painter {
   constructor(private input: DrawInput) {}
 
   result(): Drawn {
+    let under = this.body.join('')
+    if (this.holes.length) {
+      const id = `${this.input.ids}-knockout`
+      const big = 'x="-10000" y="-10000" width="20000" height="20000"'
+      this.defs.push(`<mask id="${id}" maskUnits="userSpaceOnUse" ${big}><rect ${big} fill="white"/>${this.holes.join('')}</mask>`)
+      under = `<g mask="url(#${id})">${under}</g>`
+    }
     const defs = this.defs.length ? `<defs>${this.defs.join('')}</defs>` : ''
-    return { svg: defs + this.body.join(''), marker: this.marker }
+    return { svg: defs + under + this.over.join(''), marker: this.marker }
   }
 
   private paint(role = 'ink'): string {
@@ -115,7 +124,7 @@ class Painter {
       const d = s.depth * m
       if (s.kind === 'fill') this.body.push(`<path d="${bandPath(r, o, d)}" fill="${this.paint(s.role)}" fill-rule="evenodd"/>`)
       if (s.kind === 'hatch') this.body.push(`<path d="${bandPath(r, o, d)}" fill="url(#${this.hatch(s)})" fill-rule="evenodd"/>`)
-      if (s.kind === 'tile') this.ringTiles(r, o, d, s.tile, s.role)
+      if (s.kind === 'tile') this.ringTiles(r, o, d, s.tile, s.role, s.weight)
       o += d
     }
     if (corners && corners.kind !== 'mitre') this.corners(r, o, corners)
@@ -137,7 +146,7 @@ class Painter {
   }
 
   // Sprite tiles along each side of a ring stratum, fitted to whole counts between the corners.
-  private ringTiles(r: Rect, o: number, d: number, tile: string, role?: string) {
+  private ringTiles(r: Rect, o: number, d: number, tile: string, role?: string, weight?: number) {
     const piece = this.input.sprite?.pieces[tile]
     if (!piece || d <= 0) return
     const natural = (piece.width / piece.height) * d
@@ -146,21 +155,24 @@ class Painter {
     const x1 = r.x + r.w - o
     const y1 = r.y + r.h - o
     // Each side runs between the corner squares of this stratum.
-    this.tileRun(tile, x0 + d, y0, x1 - x0 - 2 * d, d, natural, 0, role)
-    this.tileRun(tile, x1, y0 + d, y1 - y0 - 2 * d, d, natural, 90, role)
-    this.tileRun(tile, x1 - d, y1, x1 - x0 - 2 * d, d, natural, 180, role)
-    this.tileRun(tile, x0, y1 - d, y1 - y0 - 2 * d, d, natural, 270, role)
+    this.tileRun(tile, x0 + d, y0, x1 - x0 - 2 * d, d, natural, 0, role, weight)
+    this.tileRun(tile, x1, y0 + d, y1 - y0 - 2 * d, d, natural, 90, role, weight)
+    this.tileRun(tile, x1 - d, y1, x1 - x0 - 2 * d, d, natural, 180, role, weight)
+    this.tileRun(tile, x0, y1 - d, y1 - y0 - 2 * d, d, natural, 270, role, weight)
   }
 
   // A run of tiles starting at (x, y), heading at `angle` degrees, `cross` thick.
-  private tileRun(tile: string, x: number, y: number, length: number, cross: number, natural: number, angle: number, role?: string) {
+  private tileRun(tile: string, x: number, y: number, length: number, cross: number, natural: number, angle: number, role?: string, weight?: number) {
     const { count, each } = fitRepeat(length, natural)
     if (!count) return
+    const piece = this.input.sprite!.pieces[tile]!
     const href = `#${this.input.sprite!.prefix}${tile}`
     const uses: string[] = []
     for (let i = 0; i < count; i++)
       uses.push(`<use href="${href}" x="${fmt(i * each)}" y="0" width="${fmt(each)}" height="${fmt(cross)}" preserveAspectRatio="none"/>`)
-    this.body.push(`<g transform="translate(${fmt(x)} ${fmt(y)}) rotate(${angle})" style="color:${this.paint(role)}">${uses.join('')}</g>`)
+    this.body.push(
+      `<g transform="translate(${fmt(x)} ${fmt(y)}) rotate(${angle})" style="color:${this.paint(role)}${this.weightStyle(weight, cross / piece.height)}">${uses.join('')}</g>`,
+    )
   }
 
   private corners(r: Rect, depth: number, c: Exclude<CornerTreatment, { kind: 'mitre' }>) {
@@ -180,8 +192,16 @@ class Painter {
     }
     for (const corner of all) {
       const mirror = corner === 'tl' ? undefined : corner === 'tr' ? 'x' : corner === 'bl' ? 'y' : 'xy'
-      this.motif(r, { kind: 'motif', piece: c.piece, bay: '', at: { corner }, width: c.width, role: c.role, offset: c.offset, mirror })
+      this.motif(r, { kind: 'motif', piece: c.piece, bay: '', at: { corner }, width: c.width, role: c.role, offset: c.offset, mirror, weight: c.weight, knockout: c.knockout })
     }
+  }
+
+  // A placement at `scale` draws the sprite's hair at `weight` px: --eloi-weight multiplies
+  // every stroke width in the sprite (see styles.ts, weighted()).
+  private weightStyle(weight: number | undefined, scale: number): string {
+    if (weight === undefined || scale <= 0) return ''
+    const hair = this.input.sprite?.hair ?? 0.5
+    return `;--eloi-weight:${fmt(weight / (hair * scale))}`
   }
 
   // ── Rules: a profile across a band's short axis ──
@@ -233,10 +253,16 @@ class Painter {
     }
     const cx = x + w / 2
     const cy = y + h / 2
+    const s = w / piece.width
     const scale = mo.mirror === 'x' ? '-1 1' : mo.mirror === 'y' ? '1 -1' : mo.mirror === 'xy' ? '-1 -1' : ''
     const transform = scale ? ` transform="translate(${fmt(cx)} ${fmt(cy)}) scale(${scale}) translate(${fmt(-cx)} ${fmt(-cy)})"` : ''
-    this.body.push(
-      `<use href="#${this.input.sprite!.prefix}${mo.piece}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" style="color:${this.paint(mo.role)}"${transform}/>`,
+    // The hull cuts a hole in everything under the motifs, so rules don't run through the piece.
+    if (mo.knockout && piece.hull?.length) {
+      const points = piece.hull.map(([hx, hy]) => `${fmt(x + hx * s)},${fmt(y + hy * s)}`).join(' ')
+      this.holes.push(`<polygon points="${points}" fill="black"${transform}/>`)
+    }
+    this.over.push(
+      `<use href="#${this.input.sprite!.prefix}${mo.piece}" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" style="color:${this.paint(mo.role)}${this.weightStyle(mo.weight, s)}"${transform}/>`,
     )
   }
 
@@ -250,16 +276,16 @@ class Painter {
     const natural = (piece.width / piece.height) * cross
     switch (re.edge) {
       case 'top':
-        return this.tileRun(re.tile, r.x, r.y + inset, r.w, cross, natural, 0, re.role)
+        return this.tileRun(re.tile, r.x, r.y + inset, r.w, cross, natural, 0, re.role, re.weight)
       case 'bottom':
-        return this.tileRun(re.tile, r.x, r.y + r.h - inset - cross, r.w, cross, natural, 0, re.role)
+        return this.tileRun(re.tile, r.x, r.y + r.h - inset - cross, r.w, cross, natural, 0, re.role, re.weight)
       case 'left':
-        return this.tileRun(re.tile, r.x + inset + cross, r.y, r.h, cross, natural, 90, re.role)
+        return this.tileRun(re.tile, r.x + inset + cross, r.y, r.h, cross, natural, 90, re.role, re.weight)
       case 'right':
-        return this.tileRun(re.tile, r.x + r.w - inset, r.y, r.h, cross, natural, 90, re.role)
+        return this.tileRun(re.tile, r.x + r.w - inset, r.y, r.h, cross, natural, 90, re.role, re.weight)
       case 'middle':
-        if (r.h > r.w) return this.tileRun(re.tile, r.x + (r.w + cross) / 2, r.y, r.h, cross, natural, 90, re.role)
-        return this.tileRun(re.tile, r.x, r.y + (r.h - cross) / 2, r.w, cross, natural, 0, re.role)
+        if (r.h > r.w) return this.tileRun(re.tile, r.x + (r.w + cross) / 2, r.y, r.h, cross, natural, 90, re.role, re.weight)
+        return this.tileRun(re.tile, r.x, r.y + (r.h - cross) / 2, r.w, cross, natural, 0, re.role, re.weight)
     }
   }
 
@@ -296,7 +322,7 @@ class Painter {
     const x = station.x + station.w / 2
     const y = r.y + r.h - s / 2
     this.marker = { x }
-    this.body.push(
+    this.over.push(
       `<path data-eloi-marker d="M${fmt(x)} ${fmt(y - s / 2)}L${fmt(x + s / 2)} ${fmt(y)}L${fmt(x)} ${fmt(y + s / 2)}L${fmt(x - s / 2)} ${fmt(y)}Z" fill="${this.paint(mk.role)}"/>`,
     )
   }

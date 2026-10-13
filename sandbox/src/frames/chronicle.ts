@@ -32,7 +32,7 @@ export const chronicle: FrameSpec = {
       when: { classes: ['wide'] },
       sheet: {
         split: 'rows',
-        pad: { member: 'border', plus: 1 },
+        pad: { member: 'border', plus: 2 },
         parts: [
           masthead,
           dateline,
@@ -62,7 +62,7 @@ export const chronicle: FrameSpec = {
       when: { classes: ['medium'] },
       sheet: {
         split: 'rows',
-        pad: { member: 'border', plus: 1 },
+        pad: { member: 'border', plus: 2 },
         parts: [
           { ...masthead, region: { split: 'cols', parts: [{ id: 'pav-l', size: { m: 18 } }, { id: 'title', size: { fr: 1 }, region: { opening: 'masthead', fit: 'fixed' } }, { id: 'pav-r', size: { m: 18 } }] } },
           dateline,

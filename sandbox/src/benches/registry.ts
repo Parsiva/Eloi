@@ -42,15 +42,17 @@ export const benches: Bench[] = [
     proves: 'A real page: the Victorian newspaper layout filled with portfolio content.',
     doneWhen:
       'Masthead, dateline band, columns at about 1 : 3.5 : 1 and an "Upcoming projects" band, with drawn medallion corners and the crest placed from the sprite\'s sockets.',
-    status: 'planned',
+    status: 'done',
+    load: () => import('./chronicle'),
   },
   {
     id: 'specimens',
     title: 'Specimens',
     step: 'S3',
     proves: 'The ornament sprite: every piece, its hull and its sockets at several scales.',
-    doneWhen: "The portfolio's /dev/ornaments page is ported and reads the sandbox's copy of the sprite.",
-    status: 'planned',
+    doneWhen: "The portfolio's /dev/ornaments page is ported: pieces with hulls and sockets, and tiles fitted to whole counts.",
+    status: 'done',
+    load: () => import('./specimens'),
   },
   {
     id: 'skins',
