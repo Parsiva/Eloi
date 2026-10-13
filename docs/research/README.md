@@ -13,6 +13,7 @@ Research for a mathematical ornament engine for the site: dominant curves that s
 5. [Runtime-generated graphics on the web](05-web-runtime-systems.md) — 12 case studies
 6. [Designer tooling for parametric design](06-designer-tooling.md) — 16 case studies
 7. [Measuring the hand-drawn pieces against golden geometry](07-drawing-analysis.md)
+8. [Framework internals: what Eloi should borrow](08-framework-internals.md) — how compiler-first UI, islands, GPU embedding, layout engines and app shells work, and the proposed box contract (2026-10-11; notes in [`framework-internals/`](framework-internals/))
 
 Raw output: [`research.json`](research.json).
 

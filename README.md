@@ -12,20 +12,21 @@ One engine serves several hosts and styles:
 | City guessing game | mid-century flat-colour mouldings |
 | isidex | framing around the app (later) |
 
-**Status:** design only. Nothing is built yet. Code will start as `engine/` inside the portfolio and move here when a second host adopts it.
+**Status:** design only. Nothing is built yet. Code will live here as `engine/`, built and tested in `sandbox/`, a dev-only test-bench site ([plan](docs/design/sandbox.md)). The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
 
 ## Read
 
 1. **[docs/design/system.md](docs/design/system.md)**: the whole system (stages, compiler, scene, scheduler, executors, motion, host contract, packages, phases, decisions). Start here.
 2. [docs/design/frame-engine.md](docs/design/frame-engine.md): the frame layer in detail ("Elevations"): vocabulary, document format, Frame Lab, thresholds, milestones.
-3. [docs/design/future-ideas.md](docs/design/future-ideas.md): parked ideas (GPU engine, map engine), each with its trigger.
-4. [docs/research/](docs/research/README.md): 71 case studies and measurements of the hand-drawn ornament.
-5. [docs/design/background/](docs/design/README.md): gap studies, the curve catalog, five competing proposals and the judges' reviews.
-6. [docs/references/](docs/references/README.md): the AI-generated reference images, the scan of the pencil sketch and the mid-century frame trace. They are inspiration, not specs.
+3. [docs/design/sandbox.md](docs/design/sandbox.md): the sandbox, where the engine is built first.
+4. [docs/design/future-ideas.md](docs/design/future-ideas.md): parked ideas (GPU engine, map engine), each with its trigger.
+5. [docs/research/](docs/research/README.md): 71 case studies and measurements of the hand-drawn ornament.
+6. [docs/design/background/](docs/design/README.md): gap studies, the curve catalog, five competing proposals and the judges' reviews.
+7. [docs/references/](docs/references/README.md): the AI-generated reference images, the scan of the pencil sketch and the mid-century frame trace. They are inspiration, not specs.
 
 ## Sites
 
-- **[sites/portfolio/](sites/portfolio/)**: the portfolio blog (Parkington Programs Studio) as it stood on 2026-10-11. It is Vue 3 + Vite + Supabase with the old SVG frame engine (`src/frames/`) and the hand-drawn ornament sprite (`src/ornaments/`). It is the first host Eloi will replace from the inside out. To run it: `cd sites/portfolio && npm ci && npm run dev`. Content needs a `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; it is not committed. Its git history stays in [Parsiva/ParkingtonPrograms](https://github.com/Parsiva/ParkingtonPrograms).
+- **[sites/portfolio/](sites/portfolio/)**: the portfolio blog (Parkington Programs Studio) as it stood on 2026-10-11. It is Vue 3 + Vite + Supabase with the old SVG frame engine (`src/frames/`) and the hand-drawn ornament sprite (`src/ornaments/`). It is reference and the source of assets for the [sandbox](docs/design/sandbox.md); it will be rebuilt on the engine as Eloi's second host. To run it: `cd sites/portfolio && npm ci && npm run dev`. Content needs a `.env.local` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; it is not committed. Its git history stays in [Parsiva/ParkingtonPrograms](https://github.com/Parsiva/ParkingtonPrograms).
 
 ## Source art
 
