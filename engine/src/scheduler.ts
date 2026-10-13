@@ -18,14 +18,23 @@ export interface SchedulerStats {
 export class Scheduler {
   private queued = new Set<Job>()
   private raf = 0
+  private timer = 0
   private last = 0
   private stats: SchedulerStats = { frames: 0, pending: false, lastMs: 0 }
 
   // Ask for `job` to run in the next frame. Repeated requests before then coalesce.
+  // Hidden pages never fire requestAnimationFrame, so there a timer stands in: layout and state
+  // still settle in a background tab (animations stop on their own, since boxes aren't visible).
   request(job: Job): void {
     this.queued.add(job)
-    if (!this.raf) {
-      this.stats.pending = true
+    if (this.raf || this.timer) return
+    this.stats.pending = true
+    if (document.hidden) {
+      this.timer = window.setTimeout(() => {
+        this.timer = 0
+        this.run(performance.now())
+      }, 0)
+    } else {
       this.raf = requestAnimationFrame((t) => {
         this.raf = 0
         this.run(t)
@@ -35,18 +44,34 @@ export class Scheduler {
 
   cancel(job: Job): void {
     this.queued.delete(job)
-    if (this.queued.size === 0 && this.raf) {
-      cancelAnimationFrame(this.raf)
-      this.raf = 0
-      this.stats.pending = false
-    }
+    if (this.queued.size === 0) this.clearPending()
   }
 
   // Run queued jobs now, synchronously (for view transitions, which snapshot after a callback).
   flush(): void {
-    if (this.raf) cancelAnimationFrame(this.raf)
-    this.raf = 0
+    this.clearPending()
     this.run(performance.now())
+  }
+
+  private clearPending() {
+    if (this.raf) cancelAnimationFrame(this.raf)
+    if (this.timer) clearTimeout(this.timer)
+    this.raf = 0
+    this.timer = 0
+    this.stats.pending = false
+  }
+
+  // A frame requested just before the page was hidden would wait until it is shown again.
+  constructor() {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden || !this.raf) return
+      cancelAnimationFrame(this.raf)
+      this.raf = 0
+      this.timer = window.setTimeout(() => {
+        this.timer = 0
+        this.run(performance.now())
+      }, 0)
+    })
   }
 
   snapshot(): SchedulerStats {

@@ -72,14 +72,15 @@ export interface FrameLink {
   emit(e: BoxEvent): void
   listen(type: string, fn: (e: BoxEvent) => void, signal: AbortSignal): void
   channel<T>(name: string, initial: T): Signal<T>
-  observeVisible(el: Element, fn: (visible: boolean) => void): () => void
+  observeVisible(el: Element, fn: (inView: boolean, visible: boolean) => void): () => void
   changed(): void // stats changed
 }
 
 export class Box {
   readonly state = signal<BoxState>('static')
   readonly geometry = signal<BoxGeometry>({ inline: 0, block: 0, dpr: 1, room: 0, variant: '' })
-  readonly visible = signal(false)
+  readonly visible = signal(false) // in view and the page is showing: for animation
+  readonly inView = signal(false) // intersecting the viewport (with margin): for the 'visible' trigger
   readonly input = signal<unknown>(undefined)
   mounts = 0
   frames = 0
@@ -136,7 +137,10 @@ export class Box {
   attach(): void {
     if (this.attached) return
     this.attached = true
-    this.stopVisible = this.link.observeVisible(this.el, (v) => (this.visible.value = v))
+    this.stopVisible = this.link.observeVisible(this.el, (inView, visible) => {
+      this.inView.value = inView
+      this.visible.value = visible
+    })
     if (this.def && this.state.value !== 'broken') {
       this.setState('waiting')
       this.arm()
@@ -150,6 +154,7 @@ export class Box {
     this.stopVisible?.()
     this.stopVisible = undefined
     this.visible.value = false
+    this.inView.value = false
     this.disarm()
     void this.stop()
     if (this.def && this.state.value !== 'broken') this.setState('detached')
@@ -221,7 +226,7 @@ export class Box {
       }
     } else if (when === 'visible') {
       const stop = effect(() => {
-        if (this.visible.value) queueMicrotask(go)
+        if (this.inView.value) queueMicrotask(go)
       })
       arming.signal.addEventListener('abort', stop)
     } else {

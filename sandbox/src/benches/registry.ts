@@ -32,7 +32,8 @@ export const benches: Bench[] = [
     proves: 'The box contract: each box holds its own content or runtime.',
     doneWhen:
       'One frame holds a static HTML box, a DOM box with live data, a WebGL2 canvas box, a box that starts when scrolled into view, a box that throws and shows its fallback while the others keep working, and two boxes that talk through the frame. Disposing the frame leaves nothing behind.',
-    status: 'planned',
+    status: 'done',
+    load: () => import('./boxes'),
   },
   {
     id: 'chronicle',

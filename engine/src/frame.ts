@@ -102,6 +102,14 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
   const channels = new Map<string, Signal<unknown>>()
   const subscribers = new Map<string, Set<(e: BoxEvent) => void>>()
 
+  // Frame jobs; the functions they call are declared below.
+  const restructureJob: Job = {
+    write: () => restructure(),
+    onError: (err) => console.error('Eloi: restructure failed', err),
+  }
+  const geometryJob: Job = { write: () => pushGeometry() }
+  const statsJob: Job = { write: () => publishStats() }
+
   // ── DOM ──
   host.classList.add('eloi-frame')
   host.dataset.frame = spec.id
@@ -186,13 +194,13 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
   })
 
   // ── Visibility: one IntersectionObserver for every box ──
-  const visibleFns = new Map<Element, (v: boolean) => void>()
+  const visibleFns = new Map<Element, (inView: boolean, visible: boolean) => void>()
   const intersecting = new Map<Element, boolean>()
   const io = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
         intersecting.set(e.target, e.isIntersecting)
-        visibleFns.get(e.target)?.(e.isIntersecting && !document.hidden)
+        visibleFns.get(e.target)?.(e.isIntersecting, e.isIntersecting && !document.hidden)
       }
     },
     { rootMargin: '200px' },
@@ -202,11 +210,11 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
     document,
     'visibilitychange',
     () => {
-      for (const [el, fn] of visibleFns) fn(!!intersecting.get(el) && !document.hidden)
+      for (const [el, fn] of visibleFns) fn(!!intersecting.get(el), !!intersecting.get(el) && !document.hidden)
     },
     controller.signal,
   )
-  function observeVisible(el: Element, fn: (v: boolean) => void) {
+  function observeVisible(el: Element, fn: (inView: boolean, visible: boolean) => void) {
     visibleFns.set(el, fn)
     io.observe(el)
     return () => {
@@ -237,14 +245,7 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
     layoutNow()
   })
   live.observers++
-  ro.observe(host)
 
-  const restructureJob: Job = {
-    write: () => restructure(),
-    onError: (err) => console.error('Eloi: restructure failed', err),
-  }
-  const geometryJob: Job = { write: () => pushGeometry() }
-  const statsJob: Job = { write: () => publishStats() }
 
   // ── Structure: build the plan as nested grids ──
   function restructure() {
@@ -493,6 +494,13 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
       await t.finished.catch(() => {})
     } else run()
   }
+
+  // Build the first plan now, so the content is in place before the first frame (and in a
+  // background tab, which runs no frames). This is the one forced layout at mount.
+  width = host.getBoundingClientRect().width
+  cls = widthClass(spec.classes, width)
+  restructure()
+  ro.observe(host)
 
   const handle: FrameHandle = {
     el: host,
