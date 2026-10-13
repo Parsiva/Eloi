@@ -12,7 +12,7 @@ One engine serves several hosts and styles:
 | City guessing game | mid-century flat-colour mouldings |
 | isidex | framing around the app (later) |
 
-**Status:** design only. Nothing is built yet. Code will live here as `engine/`, built and tested in `sandbox/`, a dev-only test-bench site ([plan](docs/design/sandbox.md)). The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
+**Status:** S0 of the [sandbox plan](docs/design/sandbox.md) is done (the sandbox runs; the engine is still empty). Code lives here as `engine/`, built and tested in `sandbox/`, a dev-only test-bench site ([plan](docs/design/sandbox.md)). The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
 
 ## Read
 
@@ -23,6 +23,17 @@ One engine serves several hosts and styles:
 5. [docs/research/](docs/research/README.md): 71 case studies and measurements of the hand-drawn ornament.
 6. [docs/design/background/](docs/design/README.md): gap studies, the curve catalog, five competing proposals and the judges' reviews.
 7. [docs/references/](docs/references/README.md): the AI-generated reference images, the scan of the pencil sketch and the mid-century frame trace. They are inspiration, not specs.
+
+## Run the sandbox
+
+```sh
+npm install
+npm run dev        # the sandbox at http://localhost:5180
+npm test           # engine tests (Vitest)
+npm run typecheck
+```
+
+The sandbox (`sandbox/`) is a dev-only test-bench site with one page per idea being proven; press ` to toggle its dev panel. The engine (`engine/`) is source-only TypeScript that the sandbox imports directly. Plan and status: [docs/design/sandbox.md](docs/design/sandbox.md).
 
 ## Sites
 

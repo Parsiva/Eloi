@@ -1,6 +1,6 @@
 # Eloi sandbox: a test bench for the engine
 
-**Status:** plan, agreed; nothing here is built yet · **Date:** 2026-10-12
+**Status:** S0 done (2026-10-13); S1 next · **Date:** 2026-10-12
 
 The sandbox is a dev-only website inside this repo for building and testing Eloi. It is the engine's **first host**. The rebuilt portfolio is the second, and the city game and isidex come after. It is a permanent lab, not a draft of the portfolio. Keeping it separate means the host contract gets tested the same way every real host will use it.
 
@@ -65,7 +65,7 @@ The sandbox steps come first. After them, the existing milestones (frame-engine.
 
 | Step | Contains | Visible result |
 |---|---|---|
-| **S0 Scaffold** | Vite + TS sandbox, router, bench index, empty dev panel; assets and content snapshot copied in | `npm run dev` opens the bench index in the Victorian theme |
+| **S0 Scaffold** | Vite + TS sandbox, router, bench index, empty dev panel; assets and content snapshot copied in | `npm run dev` opens the bench index in the Victorian theme. **Done 2026-10-13.** |
 | **S1 Grid** | A hand-written frame spec (a TypeScript object; no compiler yet) → CSS grid; `frameEngine.ts` rings ported to draw over it | Grid bench with scrubber and overlays |
 | **S2 Boxes** | Box contract v0: static, DOM and canvas boxes; lifecycle; per-box errors; one shared ResizeObserver and IntersectionObserver; a frame clock with on-demand frames | Boxes bench passes its "done when" |
 | **S3 Chronicle** | Real content in the newspaper layout; drawn medallion corners and the crest placed from the sprite's sockets | Chronicle bench |
