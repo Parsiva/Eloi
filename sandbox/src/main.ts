@@ -26,14 +26,15 @@ document.querySelector('#app')!.append(
 effect(() => {
   const path = currentPath.value
   for (const a of links) {
-    if (new URL(a.href).pathname === path) a.setAttribute('aria-current', 'page')
+    const href = new URL(a.href).pathname
+    if (href === path || (href !== '/' && path.startsWith(href + '/'))) a.setAttribute('aria-current', 'page')
     else a.removeAttribute('aria-current')
   }
 })
 
 const resolve: Resolve = async (url) => {
   if (url.pathname === '/') return indexPage
-  const match = /^\/bench\/([\w-]+)\/?$/.exec(url.pathname)
+  const match = /^\/bench\/([\w-]+)(?:\/[\w-]*)?\/?$/.exec(url.pathname)
   const bench = match && benchById(match[1]!)
   if (!bench) return notFoundPage
   return bench.load ? (await bench.load()).default : plannedPage(bench)

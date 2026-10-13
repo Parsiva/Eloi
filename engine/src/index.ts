@@ -1,3 +1,12 @@
-// Eloi engine. Empty at S0: layout, frame drawing, boxes and host arrive in S1–S2
-// (docs/design/sandbox.md §4). Code here is source-only; the sandbox imports it directly.
-export {}
+// Eloi: a frame gives you boxes. See docs/design/system.md and docs/design/sandbox.md.
+export { mount } from './frame'
+export type { BoxHandle, FrameHandle, FrameStats, MountOptions, Overlay } from './frame'
+export type { BoxContext, BoxDef, BoxEvent, BoxGeometry, BoxRuntime, BoxState, BoxStats, When } from './boxes'
+export { Scheduler, defaultScheduler } from './scheduler'
+export type { Job, SchedulerStats } from './scheduler'
+export { liveCounts } from './debug'
+export type { LiveCounts } from './debug'
+export { PHI, roomLevel, widthClass, moduleAt, choosePlan } from './layout/room'
+export { drawMembers, fitRepeat, profileDepth } from './draw/members'
+export type { Rect } from './draw/members'
+export type * from './spec'

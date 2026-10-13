@@ -22,7 +22,8 @@ export const benches: Bench[] = [
     proves: 'A frame spec becomes a CSS grid with named boxes; width flows down and height flows up.',
     doneWhen:
       'Scrubbing 768 → 2560 never jumps or loops (narrower widths only need to not break); overlays show datums, bays and boxes; the room level of each box is shown live.',
-    status: 'planned',
+    status: 'done',
+    load: () => import('./grid'),
   },
   {
     id: 'boxes',
