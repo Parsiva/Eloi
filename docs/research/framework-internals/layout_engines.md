@@ -1,0 +1,154 @@
+# Layout engines: how they assign space and ownership of regions (notes for Eloi)
+
+Notes current as of 2026-10-11. Claims tagged "[background]" in Inferences come from prior knowledge, not a source fetched in this session. Check them before relying on them.
+
+## How does Flutter's single-pass constraints-down/sizes-up model work, and what are relayout boundaries?
+
+### Takeaway
+Flutter uses a strict one-pass protocol. The parent passes a BoxConstraints (min/max width and height), the child returns a size within those limits, and the parent then sets the child's offset. A child cannot know or choose its own position. A relayout boundary is any node whose size cannot affect its parent. Dirty layout stops propagating upward at that node, which is what makes incremental relayout cheap.
+
+### Cited Findings
+- The rule is "Constraints go down. Sizes go up. Parent sets position." A constraint is "just a set of 4 doubles: a minimum and maximum width, and a minimum and maximum height." — [Flutter: Understanding constraints](https://docs.flutter.dev/ui/layout/constraints)
+- The sequence runs in four steps. The widget receives constraints from its parent. It gives each child constraints, which can differ per child, and asks each child for its size. It positions the children. It reports its own size, within its original constraints. — [Flutter: Understanding constraints](https://docs.flutter.dev/ui/layout/constraints)
+- A widget "can't know and doesn't decide its own position in the screen." It "can decide its own size only within the constraints given to it by its parent." Layout is "designed to be a one-pass process." — [Flutter: Understanding constraints](https://docs.flutter.dev/ui/layout/constraints)
+- Constraints are either tight (an exact size is forced, as with `SizedBox.expand`) or loose (any size up to a maximum). With unbounded (infinite) constraints the widget cannot render, and the framework throws "BoxConstraints forces an infinite width." `LimitedBox` applies its cap only when the incoming constraint is infinite. — [Flutter: Understanding constraints](https://docs.flutter.dev/ui/layout/constraints)
+- `ConstrainedBox` "only imposes additional constraints". Constraints compose by intersection, so a parent's tight constraint overrides a child's preference. — [Flutter: Understanding constraints](https://docs.flutter.dev/ui/layout/constraints)
+- `RenderObject.layout(constraints, parentUsesSize)`: "If the parent reads information computed during the child's layout, the parent must pass true for parentUsesSize." When true, the parent is marked dirty whenever the child is. — [RenderObject.layout API](https://api.flutter.dev/flutter/rendering/RenderObject/layout.html)
+- Relayout boundary condition in source: `_isRelayoutBoundary = !parentUsesSize || sizedByParent || constraints.isTight || parent == null;` — [RenderObject.layout API](https://api.flutter.dev/flutter/rendering/RenderObject/layout.html)
+- `layout()` returns early if `!_needsLayout && constraints == _constraints`. When `sizedByParent` is true it calls `performResize()` (size computed from constraints alone) before `performLayout()`. Subclasses override `performResize`/`performLayout`, never `layout`. A parent "should call the layout of all its children unconditionally". The child decides whether any work is needed. — [RenderObject.layout API](https://api.flutter.dev/flutter/rendering/RenderObject/layout.html)
+
+### Inferences
+- The boundary rule is the key idea for Eloi. A box is isolated when (a) its size is fully determined by its constraints (tight, or `sizedByParent`), or (b) the parent never reads its size. An Eloi slot whose width and height are both fixed by frame datums is a tight-constraint boundary. Content changes inside it never reflow the frame. A slot whose height is "measured content height flows up" has `parentUsesSize = true`, and its changes dirty the frame.
+- The memoization key is (constraints, needsLayout). An Eloi box can skip work whenever the incoming width is unchanged and its content has not been marked dirty.
+- [background] Flutter also has intrinsic-dimension queries (`getMinIntrinsicWidth` and similar), which are documented as potentially O(N²). It has `LayoutBuilder` for building children from constraints, which is the analogue of container queries.
+
+### Gaps
+- I did not fetch the `markNeedsLayout` docs directly. The behavior of walking up to the nearest relayout boundary and adding it to `PipelineOwner._nodesNeedingLayout` is [background] knowledge.
+
+## How does SwiftUI's Layout protocol's proposal/response negotiation work? (Also covers Jetpack Compose's single-pass rule and Figma auto layout)
+
+### Takeaway
+SwiftUI inverts Flutter's authority. The parent proposes a size, which may be nil per axis to mean "ideal". The child picks its own size, and the parent must place it with that size. A container may probe a child several times with different proposals (min, max, ideal) before committing. Compose takes the opposite position: each child may be measured only once, and doing it twice throws. A parent that needs information first uses intrinsic queries. Figma's designer-facing model is fixed/hug/fill per axis.
+
+### Cited Findings
+- SwiftUI flow: "the stack's container proposes a size to the stack. Based on this, the stack proposes a size to its three buttons... The text views calculate the size they actually want... The stack sizes itself with this information, places the buttons in its space, and then reports its own size to its container." — [WWDC22: Compose custom layouts with SwiftUI](https://developer.apple.com/videos/play/wwdc2022/10056/)
+- Custom `Layout` implements `sizeThatFits(proposal:subviews:cache:)` and `placeSubviews(in:proposal:subviews:cache:)`. Subviews are proxies: "Each proxy returns a concrete size based on the proposal that I've made." In placeSubviews, "Bounds is a rectangle that has the size that I asked for in my sizeThatFits implementation... views pick their own size in SwiftUI, so my layout container will get the size that it asks for." — [WWDC22 10056](https://developer.apple.com/videos/play/wwdc2022/10056/)
+- Probing: "To measure the flexibility of a subview, I can make multiple measurements using special proposals for minimum, maximum, and ideal sizes, or I can propose a specific size. In this case, I use the unspecified size proposal to ask for the ideal size." `replacingUnspecifiedDimensions()` handles nil proposals. — [WWDC22 10056](https://developer.apple.com/videos/play/wwdc2022/10056/)
+- The `cache` parameter shares intermediate results between sizeThatFits and placeSubviews. It is optional and meant to be added when profiling shows a need. — [WWDC22 10056](https://developer.apple.com/videos/play/wwdc2022/10056/)
+- `LayoutValueKey` and `.layoutValue(key:value:)` attach per-child data, such as rank, that the layout reads through `subview[Key.self]`. — [WWDC22 10056](https://developer.apple.com/videos/play/wwdc2022/10056/)
+- `ViewThatFits` "picks the first view that fits in the available space from a list of views". `AnyLayout` switches layout algorithms "so that you maintain the identity of the views as you transition from one layout type to another" and can be animated. — [WWDC22 10056](https://developer.apple.com/videos/play/wwdc2022/10056/)
+- Compose: "Compose UI does not permit multi-pass measurement. This means that a layout element may not measure any of its children more than once." Each node measures its children, decides its own size, then places its children. Placement is allowed only in the placement scope and only after measurement, and `MeasureScope`/`PlacementScope` enforce this at compile time. — [Compose custom layouts](https://developer.android.com/develop/ui/compose/layouts/custom)
+- "measuring children twice throws a runtime exception." Intrinsics "lets you query children before they're actually measured". This is not counted as a second measurement. The parent computes constraints from the intrinsics and then measures once. — [Compose intrinsic measurements](https://developer.android.com/develop/ui/compose/layouts/intrinsic-measurements)
+- Figma auto layout gives each axis one of three sizing modes. Hug contents shrinks to the children plus padding and applies only to auto-layout frames. Fill container stretches to the parent's space. Fixed keeps an explicit size. Min/max can combine with any of them. Direction can be horizontal, vertical, wrap, or grid (children can span cells but don't wrap). Gap is fixed or Auto (between, around, evenly). "Ignore auto layout" removes a child from the flow, and the child can then use constraints. — [Figma: Guide to auto layout](https://help.figma.com/hc/en-us/articles/360040451373-Guide-to-auto-layout)
+
+### Inferences
+- [background] In SwiftUI, `ProposedViewSize.zero`, `.infinity` and `.unspecified` (nil, nil) are the conventional min, max and ideal probes. Apple's docs page returned no body text in this session, so this is not verified here.
+- These are three positions on one spectrum. Flutter gives the parent authority: the child must comply with min/max. SwiftUI gives the child authority: the parent proposes and must accept the answer. Compose is Flutter-like but adds an explicit "measure once" invariant plus a separate side-channel (intrinsics) for pre-queries. Eloi's "x depends only on width inputs" is a typed version of Compose's discipline: the axis typing makes the forbidden dependency impossible to express, so no runtime throw is needed.
+- `ViewThatFits` is close to Eloi's room-level variant choice, with one important difference. ViewThatFits chooses by measuring content fit, which Eloi's contract forbids (variant must never depend on content height). Eloi's choice depends only on the frame size `z = log_phi(size/sRef)`, which is closer to a container query.
+- `AnyLayout` preserving identity across layouts is the pattern Eloi needs when a member swaps variant. The slot content (an HTML subtree or a WebGL runtime) should keep its identity and not be remounted.
+- Figma's fixed/hug/fill maps onto Eloi slots. A frame opening is "fixed" or "fill" on x (width flows down) and "hug" on y (measured height flows up). A designer can reason about this with no new vocabulary.
+
+### Gaps
+- I could not retrieve the developer.apple.com Layout reference text (it renders client-side), so I have not verified exact signatures of `ProposedViewSize` constants, `spacing`, or `explicitAlignment`.
+- I did not cover Compose `SubcomposeLayout` / `BoxWithConstraints` (composition deferred to the layout phase) from a source. [background] It is the Compose analogue of Flutter's LayoutBuilder and of "choose children based on constraints".
+
+## What can CSS Grid + subgrid + container queries + anchor positioning do natively today (2026), so that JS computes as little as possible?
+
+### Takeaway
+As of late 2026 four features are Baseline and safe to depend on: Grid with named lines and areas, subgrid (Baseline widely available since Sept 2023), size container queries with container units, and core anchor positioning (Baseline newly available January 2026). Together they let a compiled frame express datums as named grid lines, let nested slots align to the frame's lines through subgrid, let slot content adapt to slot width without JS, and let ornaments or callouts attach to other elements. The Houdini Layout API never shipped and should not be planned around.
+
+### Cited Findings
+- Subgrid is "Baseline Widely available", working across browsers since September 2023. A `subgrid` value on `grid-template-columns`/`rows` makes a nested grid "use the tracks defined on the parent". It inherits the parent's track sizes, gaps (which can be overridden) and line names, and can add its own line names. Line numbering restarts inside the subgrid. — [MDN: Subgrid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Subgrid)
+- Subgrid content contributes to parent track sizing: auto tracks grow to fit content from both the main grid and the subgrid. A subgridded dimension cannot create implicit tracks, so overflow items get squeezed into the last track. — [MDN: Subgrid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Subgrid)
+- Container queries: `container-type: size | inline-size` makes an element a query container and "adds containment". The stated reason is performance and that otherwise "if a descendant style changed the size of the container element, an infinite loop could occur." Queryable features are width, height, inline-size, block-size, aspect-ratio and orientation. — [MDN: Container size and style queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries)
+- Style queries (`@container style(--x: v)`) support custom properties only. Standard declarations such as `style(font-weight: bold)` are "not yet supported in any browser" (MDN's note is dated Feb 2024 on a page modified Aug 2026, so it may be outdated). Scroll-state container queries exist as a fifth query type. — [MDN: Container size and style queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries)
+- Anchor positioning became "Baseline Newly available" with Firefox 147 (January 2026). — [web.dev: New to the web platform in January 2026](https://web.dev/blog/web-platform-01-2026?hl=en). The same page's support widget showed different numbers on fetch (Chrome/Edge/Firefox 151, Safari 27), which conflicts with the text. A search summary of that page gave Chrome 125, Edge 125, Firefox 147, Safari 26. Secondary blogs cite Firefox 132 or Safari 18.2, which conflicts with web.dev. Prefer the web.dev text (Firefox 147). — [search results incl. buildmvpfast](https://www.buildmvpfast.com/blog/css-anchor-positioning-baseline-delete-floating-ui-2026)
+- A secondary blog reports that Web Platform Status still marks the full anchor-positioning group as limited, because of `position-visibility` and `anchor-size()` interop. It recommends relying on core `anchor()`/`position-area` and gating with `@supports (anchor-name: --x)`. — [buildmvpfast blog](https://www.buildmvpfast.com/blog/css-anchor-positioning-baseline-delete-floating-ui-2026) (secondary source, not verified against WPT)
+- Houdini CSS Layout API: Chrome filed an Intent to Implement for a subset in 2018. I found no record of it shipping. Reports describe it as available only behind "Experimental Web Platform features" in Chromium and absent from Firefox and Safari. Detection is via `CSS.layoutWorklet`. — [blink-dev Intent to Implement](https://groups.google.com/a/chromium.org/g/blink-dev/c/gVvtbIjE2J4/m/0KWy4Ew2CQAJ); [dev.to explainer](https://dev.to/adrianbdesigns/css-houdini-s-layout-api-explained-33pa)
+
+### Inferences
+- [background] Size container queries and container units (`cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, `cqmax`) have been Baseline since early 2023 (Chrome 105, Safari 16, Firefox 110). The MDN page fetched here did not include the compatibility table.
+- [background] `container-type: inline-size` applies inline-size containment only, so the block size still comes from content. This is exactly Eloi's "width flows down, height flows up". Each frame opening can be an `inline-size` container, and slot content uses `@container`/`cqi` to adapt to the width the frame gave it. Using `container-type: size` on a slot would also cut off height-flows-up (the slot would need an explicit height), so reserve it for fixed-aspect openings such as canvases.
+- Grid named lines are the natural compilation target for frame datums: `grid-template-columns: [frame-l] 2rem [inner-l] 1fr [inner-r] 2rem [frame-r]`. Openings become `grid-area`s. Nested members use `subgrid` so their inner content aligns to the outer frame's datums without JS. Because subgrids feed content sizes back into parent auto tracks, content-height-flows-up is also native when rows are `auto`/`minmax(x, auto)`.
+- Anchor positioning is suited to ornaments that follow a slot edge (cartouches, corner pieces, labels) without being grid children. Because Firefox only arrived in Jan 2026, keep an `@supports` fallback and avoid `anchor-size()` for structural layout.
+- Treat Houdini Layout as dead for planning purposes. Eloi's "compute in JS, emit CSS" approach is the practical replacement.
+- [background] `field-sizing`, `interpolate-size`/`calc-size()`, CSS masonry (`display: grid-lanes`) and `if()` are newer features with partial support. Each needs checking against caniuse before use. They were not verified in this session.
+
+### Gaps
+- Exact current caniuse percentages for subgrid, container queries and anchor positioning were not retrieved.
+- There is no authoritative 2026 Houdini Layout API status page. ishoudinireadyyet.com did not resolve when fetched.
+
+## How does ResizeObserver avoid infinite loops, and what patterns cause layout thrash?
+
+### Takeaway
+ResizeObserver runs inside the rendering update, after layout and before paint. It delivers notifications in rounds. After each round, only elements deeper in the DOM than the shallowest element just delivered may be notified again. Anything shallower is deferred to the next frame, and an error event is fired. This guarantees termination but does not prevent a cross-frame oscillation. Avoiding loops is the author's job: never let a callback change the observed box's own observed dimension, or guard it with an expected size.
+
+### Cited Findings
+- Resize notifications fire before paint. If any fired, style and layout are re-evaluated, which can fire more. "Infinite loops from cyclic dependencies are addressed by only processing elements deeper in the DOM during each iteration." Others are deferred to the next paint, and an error event fires with the message "ResizeObserver loop completed with undelivered notifications." "Note that this only prevents user-agent lockup, not the infinite loop itself." — [MDN: ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+- Spec mechanics: each observation's depth is the number of nodes to the root. Active observations deeper than the current threshold are gathered and broadcast, and the others go into `skippedTargets`. Broadcast returns the shallowest broadcast depth, which becomes the next threshold. Leftover skipped observations trigger the loop error. The algorithms run inside HTML "update the rendering". — [CSSWG ResizeObserver draft](https://drafts.csswg.org/resize-observer/)
+- Boxes: `content-box` (default), `border-box`, and `device-pixel-content-box` (integer device pixels, which can be triggered by position changes and costs more). The `box` option controls only what triggers a notification. Entries always carry `contentBoxSize`, `borderBoxSize` and `devicePixelContentBoxSize`. — [CSSWG ResizeObserver draft](https://drafts.csswg.org/resize-observer/)
+- A new observation starts with `lastReportedSizes = (-1,-1)`, so the first check always fires one initial notification. — [CSSWG ResizeObserver draft](https://drafts.csswg.org/resize-observer/)
+- Mitigations: for an intentional loop, defer the work with `requestAnimationFrame`, which pushes it to the next frame. For an unintentional loop, record an expected size (for example in a WeakMap) and skip when the element already has it. Deferral can cause "a flash of broken layout" because changes spread across frames. ResizeObserver has been Baseline widely available since July 2020. — [MDN: ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+
+### Inferences
+- The depth rule means a callback on an outer element (the frame) may safely change inner elements (slots) in the same frame. A callback on an inner element that changes an outer element's size is deferred a frame, flashes, and logs the error. For Eloi: observe slot content heights (deep) and write only to the frame's row tracks. Writing upward always defers. Better still, leave height-flows-up to native CSS `auto` rows so JS never writes heights at all.
+- Classic thrash ([background]): interleaving DOM reads (`offsetHeight`, `getBoundingClientRect`) with writes in a loop forces synchronous layout each time. Batch all reads, then all writes, or read only from ResizeObserver entries, which are computed for you without forcing layout.
+- Eloi's z-level hysteresis is the right defense against width-oscillation loops. Example: a scrollbar appears, width drops, the variant changes, height drops, the scrollbar disappears, and the cycle repeats. `scrollbar-gutter: stable` removes the most common trigger, and the hysteresis band handles the rest.
+- Use the observed `contentBoxSize[0].inlineSize`, which is fractional, for z-level computation. Use `devicePixelContentBoxSize` only for sizing WebGL/WebGPU canvas backing stores, where integer device pixels are needed to avoid blur.
+
+### Gaps
+- I did not verify the exact HTML "update the rendering" step ordering (relative to IntersectionObserver and rAF callbacks) from the HTML spec in this session.
+
+## How do Yoga/Taffy expose layout as a library separate from rendering?
+
+### Takeaway
+Both treat layout as a pure function over a node tree of styles. Leaf content (text, images, foreign runtimes) is plugged in through a measure callback. Results are boxes (x, y, w, h) that the host applies to its own renderer. Both cache by inputs and mark dirty nodes so relayout is incremental. Taffy also exposes a low-level trait API so a host can keep its own tree and call individual algorithms (flex, grid, block) per node, which is the model Eloi could copy for its WebGL/regl targets.
+
+### Cited Findings
+- Taffy is "A high performance rust-powered UI layout library" that implements CSS Block, Flexbox and CSS Grid. It is used by Servo, Blitz, Bevy, Slint, Lapce/Floem and Zed/GPUI. It is "designed to be used as a dependency for other UI and GUI libraries". Python bindings exist via stretchable, and C/WASM bindings are listed as work in progress. It benchmarks against Yoga, "often faster but not in every case". — [Taffy GitHub](https://github.com/DioxusLabs/taffy)
+- Taffy 0.14.0 docs: the high-level `TaffyTree` stores nodes and handles caching and dispatch, with `compute_layout_with_measure(root, available_space, measure_fn)` and then `layout(node)`. The low-level API means implementing `LayoutPartialTree` on your own tree and calling `compute_flexbox_layout`, `compute_grid_layout` and so on per node, which is recommended "for embedding Taffy in a wider layout or UI system". `CacheTree` + `compute_cached_layout` provide input-keyed caching, `compute_root_layout` handles the root, and `round_layout` snaps to the pixel grid. Nodes can carry user "context" (for example text layout) for the measure function. — [docs.rs/taffy](https://docs.rs/taffy/latest/taffy/)
+- Yoga incremental layout: changing a node's style or children marks the node and its ancestors dirty. Later layouts skip non-dirty nodes whose parent constraints haven't changed. After layout, a `HasNewLayout` flag tells the host which subtrees to re-apply, and the host resets it (`YGNodeSetHasNewLayout` / `markLayoutSeen()`). The same pattern appears in the C/C++, Java and JS APIs. — [Yoga: Incremental layout](https://www.yogalayout.dev/docs/advanced/incremental-layout)
+
+### Inferences
+- [background] The Taffy measure function receives `known_dimensions: Size<Option<f32>>`, `available_space: Size<AvailableSpace>` (`Definite(f32)`, `MinContent`, `MaxContent`), the node id and its context. This is the same min/max/ideal probing as SwiftUI proposals, expressed as an enum. Yoga's `YGMeasureFunc(node, width, widthMode, height, heightMode)` uses modes `Undefined`/`Exactly`/`AtMost`, which map to Flutter's unbounded/tight/loose.
+- So every engine reduces to the same contract per axis: the parent gives the child one of {exact, at most N, unbounded/intrinsic}, and the child returns a size. Eloi's typed axes are this contract fixed per axis: x is always "exactly W" (or "at most W"), and y is always "unbounded, report height".
+- Taffy's split between the high-level tree and low-level traits suggests a split for Eloi. A pure `solveFrame(frameSpec, width) -> {datums, slotRects, variant}` function would have no DOM dependency. A DOM backend would emit CSS grid lines, and WebGL/regl backends would read slotRects directly. Content heights come back through a host-provided measure callback, which is ResizeObserver in DOM and text metrics or a scene graph in WebGL.
+- Yoga's dirty-plus-HasNewLayout pair gives Eloi a cheap way to tell embedded runtimes (map engine, isidex) "your slot rect changed". Push the rect only when the flag is set, rather than every frame.
+
+### Gaps
+- I did not fetch Yoga's measure-function docs or the Yoga 3.x release notes. Version-specific details (for example Yoga 3's behavioral fixes and `errata` settings) are unverified.
+
+## Lessons for Eloi: which model does the frame-to-box contract most resemble, what should a box's contract with its contents be, and where should native CSS be used versus JS?
+
+### Takeaway
+Eloi's contract is closest to Flutter and Compose: parent authority, a single pass, and constraints that are tight on x and unbounded on y. It is implemented natively by CSS Grid with `auto` rows plus `container-type: inline-size` slots. Variant selection works like a container query or `LayoutBuilder`, not like SwiftUI's `ViewThatFits`, because it never measures content. JS should compute only frame geometry from width and emit CSS. Height flow, adaptation inside slots, alignment and ornament attachment should stay native wherever possible.
+
+### Cited Findings
+- Flutter's one-pass model and relayout boundary rule (tight constraints or parent not using the size means a boundary) — [Flutter constraints](https://docs.flutter.dev/ui/layout/constraints); [RenderObject.layout](https://api.flutter.dev/flutter/rendering/RenderObject/layout.html)
+- Compose forbids measuring twice and uses intrinsics as a separate pre-query — [Compose intrinsics](https://developer.android.com/develop/ui/compose/layouts/intrinsic-measurements)
+- Container queries rely on containment to prevent loops in which a descendant changes the container's size — [MDN container queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries)
+- Subgrid content contributes to the parent's auto tracks, and line names are inherited — [MDN Subgrid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Subgrid)
+- ResizeObserver's depth rule delivers downward writes in the same frame and defers upward writes — [MDN ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+
+### Inferences
+**Which model it resembles**
+- The closest match is Flutter's RenderBox with BoxConstraints `(minW = maxW = slotWidth, minH = 0 or datum floor, maxH = ∞)`. The frame is the parent, and openings are children with tight width and loose or unbounded height. Eloi's typed axes are a static proof of what Compose enforces at runtime: x never depends on content, so there is one pass per axis. The x-pass runs top-down (frame width, then datums, then slot widths). The y-pass runs bottom-up (content heights, then row tracks, then frame height).
+- Each member's "room level" variant choice is Flutter's `LayoutBuilder`, Compose's `BoxWithConstraints`, or a CSS `@container (width…)`. It is a function of constraints only, and that is what keeps it loop-free. Do not add a content-fit fallback in the style of `ViewThatFits`. It would reintroduce height-depends-on-variant-depends-on-height.
+- In SwiftUI terms, the frame should never let a child pick its width. SwiftUI's "child chooses, parent must accept" model fits ornaments with intrinsic aspect ratios, such as a cartouche of fixed proportions. Treat those as leaf measure functions on the x-axis only if their width is derivable from width inputs, for example an aspect ratio times a datum.
+
+**A box's contract with its contents (proposal)**
+- Given to contents: `{ inlineSize: exact px (definite), blockSize: unbounded | min floor | exact (for fixed-aspect openings), zLevel, variantKey, datums (named lines available for subgrid) }`. This is Taffy's `AvailableSpace` / Yoga's `MeasureMode` with Eloi's axis typing applied.
+- Reported by contents: `{ blockSize }` only, never a width. In DOM the report is implicit (grid `auto` row), and in JS runtimes it is explicit through a measure callback.
+- Declare per slot whether the parent uses the reported height (`parentUsesSize`). Slots with fixed height (canvas, map viewport, isidex diagram) are relayout boundaries. Content changes there never touch the frame, and in CSS they should get `contain: size` or `container-type: size` plus an explicit `aspect-ratio`/height. Height-hugging slots (text) dirty only their row track.
+- Position is owned by the frame. Contents never know their page offset (Flutter's rule). Embedded runtimes receive a rect in local coordinates. Only the host composes screen transforms, which matters for WebGL canvases that may be shared or overlaid.
+- Keep slot identity stable across variant swaps (SwiftUI `AnyLayout`). Re-template the grid, but don't remount slot children, especially WebGL contexts.
+
+**Native CSS vs JS**
+- Native: datums as named grid lines, openings as `grid-area`, nested alignment via `subgrid`, height-flows-up via `auto`/`minmax(floor, auto)` rows, adaptation inside slots via `container-type: inline-size` + `@container` + `cqi` units, ornaments attached to slot edges via anchor positioning (core only, behind `@supports`, Baseline since Jan 2026), and first paint from compiled CSS with no JS.
+- JS: solve curved or ornamental geometry (which CSS cannot express) as a pure function of width; compute z-level and hysteresis; emit `grid-template-*` and custom properties only when the variant or datums change; push slot rects to non-DOM runtimes; and draw SVG/canvas ornament paths. Read content sizes only through ResizeObserver entries (no forced sync layout), and write only to elements at or above the observed slot. Upward writes are deferred a frame by spec, so let CSS `auto` rows handle height instead of writing heights from JS.
+- Do not plan on the Houdini Layout API. It is effectively unshipped.
+- Portable core: model Eloi's solver on Taffy's low-level API as `solve(frameSpec, availableWidth, measure) -> rects`. The DOM backend compiles to CSS, and the WebGL/WebGPU and regl backends consume rects directly, with dirty/HasNewLayout-style flags to avoid redundant pushes.
+
+### Gaps
+- No source directly compares these engines as a single model. The unification above is synthesis.
+- I did not verify whether `calc-size()`/`interpolate-size` (animating to `auto` height) has reached Baseline. It would matter for animating variant swaps natively.

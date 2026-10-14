@@ -1,0 +1,210 @@
+/* Chronicle content. Fonts and colours come from the skin's tokens on the frame (--ink,
+   --font-display, --font-text), so re-skinning the frame re-skins the type too. */
+@layer base {
+  .eloi-frame[data-frame="chronicle"] {
+    color: var(--ink);
+    font-family: var(--font-text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .eloi-frame[data-skin="midcentury"] {
+    background: var(--paper);
+  }
+
+  .chron-mast {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .chron-mast__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 6.2cqi, 4.6rem);
+    line-height: 1.05;
+  }
+
+  [data-skin="midcentury"] .chron-mast__title {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: clamp(1.5rem, 4.6cqi, 3.4rem);
+  }
+
+  .chron-mast__sub,
+  .chron-dateline,
+  .chron-section,
+  .chron-foot,
+  .chron-ledger__date {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .chron-mast__sub {
+    margin: 0.5em 0 0;
+  }
+
+  .chron-dateline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.2em;
+  }
+
+  [data-skin="midcentury"] .chron-dateline span {
+    background: var(--paper);
+    padding: 0.2em 0.7em;
+  }
+
+  .chron-section {
+    margin: 0 0 0.9em;
+    padding-bottom: 0.35em;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .chron-section--centre {
+    text-align: center;
+    border: 0;
+  }
+
+  .chron-lead__title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 2.1rem;
+    line-height: 1.1;
+    margin: 0 0 0.2em;
+  }
+
+  [data-skin="midcentury"] .chron-lead__title {
+    font-weight: 700;
+  }
+
+  .chron-lead__tagline,
+  .chron-brief__tagline {
+    font-style: italic;
+  }
+
+  .chron-columns {
+    columns: 2 22em;
+    column-gap: 2.2em;
+    column-rule: 1px solid var(--rule);
+    text-align: justify;
+    hyphens: auto;
+    margin-bottom: 1.5em;
+  }
+
+  .chron-columns p {
+    margin: 0 0 0.8em;
+  }
+
+  .chron-columns p:first-child::first-letter {
+    float: left;
+    font-family: var(--font-display);
+    font-size: 3.4em;
+    line-height: 0.85;
+    padding: 0.04em 0.08em 0 0;
+  }
+
+  .chron-briefs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16em, 1fr));
+    gap: 1em 2em;
+  }
+
+  .chron-brief h4,
+  .chron-upcoming h4 {
+    margin: 0 0 0.25em;
+    font-size: 1rem;
+  }
+
+  .chron-brief p {
+    margin: 0 0 0.4em;
+    font-size: 0.92em;
+  }
+
+  .chron-side {
+    font-size: 0.92em;
+  }
+
+  .chron-ledger {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .chron-ledger li {
+    display: grid;
+    gap: 0.15em;
+    padding: 0.55em 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+
+  .chron-ledger__title {
+    font-weight: 700;
+  }
+
+  .chron-ledger__summary {
+    font-size: 0.92em;
+  }
+
+  .chron-highlights {
+    list-style: none;
+    margin: 0 0 1.6em;
+    padding: 0;
+  }
+
+  .chron-highlights li {
+    display: grid;
+    padding: 0.45em 0;
+    border-bottom: 1px dotted var(--rule);
+  }
+
+  .chron-highlights span {
+    font-size: 0.85em;
+    font-style: italic;
+  }
+
+  .chron-stats {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    margin: 0;
+    font-family: var(--font-display);
+  }
+
+  .chron-stats dt,
+  .chron-stats dd {
+    padding: 0.2em 0;
+    border-bottom: 1px dotted var(--rule);
+    margin: 0;
+  }
+
+  .chron-stats dd {
+    font-size: 1.6em;
+    line-height: 1;
+  }
+
+  .chron-upcoming__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14em, 1fr));
+    gap: 1.2em 2em;
+  }
+
+  .chron-upcoming ul {
+    margin: 0;
+    padding-left: 1.1em;
+    font-size: 0.92em;
+  }
+
+  .chron-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2em;
+  }
+}

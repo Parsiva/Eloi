@@ -1,0 +1,15 @@
+{
+  "name": "eloi",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "engine",
+    "sandbox"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @eloi/sandbox",
+    "build": "npm run build -w @eloi/sandbox",
+    "test": "npm run test -w @eloi/engine",
+    "typecheck": "npm run typecheck --workspaces"
+  }
+}

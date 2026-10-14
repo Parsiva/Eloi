@@ -70,7 +70,7 @@ Estimates assume part-time work with AI help.
 
 ## 2. Map engine
 
-**Trigger:** once the owner understands what they want from a mapping engine. Much of their work is maps.
+**Trigger:** the city game. The game is where the map engine gets built, as the runtime in the game's main box. Much of the owner's work is maps.
 
 **What it is:** a separate engine built on the same core. Waterlining and contour hatching come from line families. Zoom styling comes from room levels. Buffers come from geometry, data-driven styling from expressions, and palettes from skins. A map is the content of a frame opening, and its neatline is a frame member. Details: [frame-engine.md §16](frame-engine.md).
 

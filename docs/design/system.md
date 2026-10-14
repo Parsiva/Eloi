@@ -7,6 +7,7 @@
 | Document | Covers |
 |---|---|
 | [frame-engine.md](frame-engine.md) ("Elevations") | the frame layer in detail: vocabulary, document format, Studio, thresholds |
+| [sandbox.md](sandbox.md) | the sandbox: the test-bench site where the engine is built first |
 | [future-ideas.md](future-ideas.md) | parked ideas, including the GPU engine and the map engine |
 | [../research/](../research/README.md) | the evidence |
 
@@ -23,9 +24,9 @@ It is the owner's design ideology turned into software: a reusable computational
 | Host | Style | What the engine does there | When |
 |---|---|---|---|
 | Portfolio site | Victorian engraving | the frame is the page layout; motion on section change; per-box scroll speeds | first |
-| City guessing game | mid-century modern | frames the game screens and reacts to game state | second (game is preliminary) |
-| Isidex | to be designed | framing around its WebGL diagram canvas | later |
-| Maps | — | a separate engine on the same core | future idea |
+| City guessing game | mid-century modern | frames the game screens and reacts to game state; its big box holds the map engine | second (game is preliminary) |
+| Isidex | to be designed | framing around its regl diagram engine, which runs in one big box | later |
+| Maps | — | a separate engine on the same core, built inside the city game | with the game |
 
 ---
 
@@ -478,7 +479,7 @@ The Studio is specified in frame-engine.md §10.
   - The engine supplies the DOM/SVG frame around isidex's regl canvas, and shares skins, curves and room levels.
   - It follows isidex's clock through `MountOptions.clock`.
   - A shared GPU layer is a future decision.
-- **Maps.** A separate engine on the same core ([future-ideas.md §2](future-ideas.md)).
+- **Maps.** A separate engine on the same core, built as part of the city game and running in one of its boxes ([future-ideas.md §2](future-ideas.md)).
 
 ---
 
@@ -500,14 +501,14 @@ engine/
 
 This replaces the folder layout in frame-engine.md §7.1. Lint rules enforce the boundaries: `core` never imports a renderer or the Studio, and the Studio never ships.
 
-- **Repository.** Design docs live in Parsiva/Eloi. Code starts as `engine/` inside the portfolio repo and moves into Eloi, published as packages, when the city game adopts it. Two real users come before generalising.
+- **Repository.** Everything lives in Parsiva/Eloi: `engine/`, the [sandbox](sandbox.md) (the first host, a permanent test bench) and the docs. The portfolio is rebuilt on the engine as the second host. Packages are published when the city game adopts the engine. Two real users come before generalising. *(Changed 2026-10-12: code no longer starts inside the portfolio.)*
 - **Site shell.** The portfolio becomes a TypeScript site (frame-engine.md §12.5). The build inlines the frame's CSS and static SVG into the HTML.
 
 ---
 
 ## 18. Build order
 
-The milestones (M0–M9) are defined in frame-engine.md §13. Here they are grouped into phases, with motion moved earlier because it is central to the vision.
+The sandbox steps S0–S3 ([sandbox.md §4](sandbox.md)) come first, and the milestones grow out of its benches. The milestones (M0–M9) are defined in frame-engine.md §13. Here they are grouped into phases, with motion moved earlier because it is central to the vision.
 
 | Phase | Contains | Visible result | Why here |
 |---|---|---|---|
@@ -546,9 +547,11 @@ Each decision has a default, so work can start before you decide.
 |---|---|---|
 | 1 | Engine name and package scope | **decided: Eloi** (repo Parsiva/Eloi); package scope still open, decide before publishing packages (Phase 6) |
 | 2 | Motion before curves (Phase 4 before 5)? | **yes** |
-| 3 | Move the engine to its own repo when the city game adopts it? | **yes** |
+| 3 | Where does the engine live? | **decided: in Parsiva/Eloi from the start**, with the sandbox as first host ([sandbox.md](sandbox.md)); publish packages when the city game adopts it |
 | 4 | Portfolio prerendering | **inline the frame CSS and SVG in the app shell first**; full static generation of pages with content later, if wanted |
 | 5 | How hosts pass data | **`set()` backed by signals**; an event bus only if a host needs one |
 | 6 | Default style scope | **CSS cascade layers**; shadow DOM as an option |
+| 7 | First style in the sandbox | **decided: Victorian chronicle** (straight rings plus drawn ornaments; curves later) |
+| 8 | First GPU box | **decided: a small WebGL2 toy**; isidex's regl engine later |
 
 Still pending from the frame design: two-ribbon twist or plait, a bottom garland, the flame's growth rate and leaf sizing (frame-engine.md §15).

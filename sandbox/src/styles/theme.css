@@ -1,0 +1,22 @@
+/* The Victorian skin's first tokens, taken from sites/portfolio/src/styles/theme.css.
+   These become the engine's skin roles once skins exist (frame-engine.md §5). */
+@layer theme {
+  @font-face {
+    font-family: "Old London";
+    src: url("/fonts/OldLondon.ttf") format("truetype");
+    font-display: swap;
+  }
+
+  :root {
+    --ink: #2c2419;
+    --ink-soft: color-mix(in srgb, var(--ink) 70%, var(--paper));
+    --rule: color-mix(in srgb, var(--ink) 35%, transparent);
+    --paper: #e6dcc3;
+    --paper-texture: url("/paper/paper-tile-light.webp");
+    --surface: color-mix(in srgb, var(--paper) 92%, #ffffff 8%);
+    --gutter: 18px;
+    --font-display: "Old London", "Libre Baskerville", Georgia, serif;
+    --font-text: "Libre Baskerville", Georgia, serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+}

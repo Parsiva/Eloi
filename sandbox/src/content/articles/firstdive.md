@@ -1,0 +1,10 @@
+---
+title: "First deep dive"
+date: "2025-09-22"
+category: "marginalia"      # or "manuscripts"
+slug: "firstdive"     # optional; defaults from filename
+---
+
+The first topic of discussion will be immigration. Particularly I initially want to focus on the differences between those that have been a resident of the US for a while and those that are recent immigrants. The first study that I want to highlight is "Immigration, Political Ideologies, and the Polarization of American Politics," this is a paper from Harvard that provides causal evidence of political polarization significantly increasing in counties that experienced greater inflows of immigrants over a two-year time horizon. Immigration changes the composition of our communities, what this means for individual cities varies on the languages, religions, and customs of cities. This creates a partisan divide where conservative politicians attempt to preserve cultural dominance and progressive politicians who represent the recent immigrants promotes multiculturalism. The major issue with this is that in the past 5 years, over 11 million immigrants have moved to the US. Immigrants tend to live in urban areas with high wages and a high cost of living so they can send money back home. None of this should be a great surprise as a great deal of the curriculum in my city planning degree is centered around inclusivity and planning for immigrants that are still to come. 
+
+So, what is my problem with the current situation? Immigrants are currently allowed to stream into the country at an almost free flow. Nearly 2.8 million immigrants came to the US from July 2023 to June 2024 according to census.gov. These immigrants of course are going to have a different interest than native born citizens and thus they are going to vote differently. This is a large part of how democrats cemented their control over cities, by declaring your city a sanctuary city you could ensure that a steady stream of immigrants who are less likely to vote for nativist positions.
