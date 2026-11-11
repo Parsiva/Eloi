@@ -50,6 +50,13 @@ export interface BoxHandle {
 export interface FrameHandle {
   readonly el: HTMLElement
   readonly spec: FrameSpec
+  readonly plan: string // the id of the plan in use
+  // Replace the frame document on a live frame. Openings keep their elements (and whatever is
+  // running in them) by slot name; the sheet is rebuilt and redrawn at once. Throws, changing
+  // nothing, if the new spec is invalid.
+  setSpec(spec: FrameSpec): void
+  // Every bay of the current plan, measured at the last solve, relative to the frame.
+  bays(): Record<string, Rect>
   readonly stats: ReadonlySignal<FrameStats>
   readonly route: ReadonlySignal<string | undefined>
   // Change route; `during` runs inside the view transition (update boxes' inputs there, so the
@@ -70,11 +77,9 @@ export interface FrameHandle {
 
 let frameCount = 0
 
-export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions): FrameHandle {
-  for (const plan of spec.plans) {
-    const issues = validatePlan(plan)
-    if (issues.length) throw new Error(`Eloi: invalid frame spec "${spec.id}":\n${issues.join('\n')}`)
-  }
+export function mount(host: HTMLElement, initialSpec: FrameSpec, options: MountOptions): FrameHandle {
+  let spec = initialSpec
+  checkSpec(spec)
 
   const n = ++frameCount
   const ids = `eloi${n}`
@@ -137,7 +142,9 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
     changed: () => scheduler.request(statsJob),
   }
   const hostSlots = [...host.children].filter((c): c is HTMLElement => c instanceof HTMLElement && !!c.dataset.slot)
+  const hostEls = new Map<string, HTMLElement>() // slot → the host's own element, for dispose
   for (const el of hostSlots) {
+    hostEls.set(el.dataset.slot!, el)
     el.remove()
     addBox(el.dataset.slot!, el)
   }
@@ -506,7 +513,28 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
 
   const handle: FrameHandle = {
     el: host,
-    spec,
+    get spec() {
+      return spec
+    },
+    get plan() {
+      return plan?.id ?? ''
+    },
+    setSpec(next) {
+      if (disposed) return
+      checkSpec(next)
+      spec = next
+      host.dataset.frame = spec.id
+      for (const p of spec.plans) for (const slot of slotsOf(p)) if (!boxes.has(slot)) addBox(slot, document.createElement('div'))
+      cls = widthClass(spec.classes, width)
+      plan = undefined // plans are new objects: rebuild the sheet
+      restructure()
+      layoutNow()
+    },
+    bays() {
+      const out: Record<string, Rect> = {}
+      for (const [id, r] of Object.entries(rects)) out[id] = { ...r }
+      return out
+    },
     stats,
     route,
     setRoute: (next, during) =>
@@ -564,6 +592,17 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
       for (const box of [...boxes.values()].reverse()) await box.dispose()
       controller.abort()
       sheet.remove()
+      // Hand the host its own slot elements back, as they were written.
+      for (const [slot, el] of hostEls) {
+        boxes.get(slot)?.restore()
+        el.classList.remove('eloi-opening')
+        el.style.removeProperty('padding')
+        el.style.removeProperty('view-transition-name')
+        for (const a of ['fit', 'bay', 'state']) delete el.dataset[a]
+        if (!el.getAttribute('style')) el.removeAttribute('style')
+        if (!el.getAttribute('class')) el.removeAttribute('class')
+        host.append(el)
+      }
       ink.remove()
       over.remove()
       for (const name of [...skinVars, '--m']) host.style.removeProperty(name)
@@ -576,6 +615,12 @@ export function mount(host: HTMLElement, spec: FrameSpec, options: MountOptions)
     },
   }
   return handle
+}
+
+function checkSpec(spec: FrameSpec): void {
+  if (!spec.plans?.length) throw new Error(`Eloi: frame spec "${spec.id}" needs at least one plan`)
+  const issues = spec.plans.flatMap((plan) => validatePlan(plan))
+  if (issues.length) throw new Error(`Eloi: invalid frame spec "${spec.id}":\n${issues.join('\n')}`)
 }
 
 function svgEl(className: string): SVGSVGElement {

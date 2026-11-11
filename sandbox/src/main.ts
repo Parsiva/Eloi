@@ -10,6 +10,7 @@ import { indexPage, notFoundPage, plannedPage } from './benches/pages'
 import { mountDevPanel } from './devpanel/devpanel'
 
 const links = [h('a', { href: '/' }, 'Index'), ...benches.map((b) => h('a', { href: `/bench/${b.id}` }, b.title))]
+const siteLink = h('a', { href: '/site.html', title: 'The chronicle as a site, with the editor' }, 'Site ✎')
 const outlet = h('main', { class: 'outlet' })
 
 document.querySelector('#app')!.append(
@@ -19,7 +20,7 @@ document.querySelector('#app')!.append(
     h('h1', { class: 'masthead__title' }, 'Eloi Sandbox'),
     h('p', { class: 'masthead__subtitle' }, 'A test bench for the frame engine'),
   ),
-  h('nav', { class: 'nav-strip', 'aria-label': 'Benches' }, ...links),
+  h('nav', { class: 'nav-strip', 'aria-label': 'Benches' }, ...links, siteLink),
   outlet,
 )
 

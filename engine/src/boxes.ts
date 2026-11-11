@@ -179,6 +179,16 @@ export class Box {
     }
   }
 
+  // Undo define() and fail(): put the original children back in the element and drop the
+  // engine's wrappers and error text. Called by the frame on dispose.
+  restore(): void {
+    if (this.fallbackEl) this.el.append(...this.fallbackEl.childNodes)
+    this.fallbackEl?.remove()
+    this.runtimeEl?.remove()
+    this.errorEl?.remove()
+    this.el.removeAttribute('data-error')
+  }
+
   async dispose(): Promise<void> {
     this.detach()
     await this.stop()

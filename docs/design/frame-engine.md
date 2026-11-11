@@ -1,6 +1,6 @@
 # Frame Engine Design: "Elevations"
 
-**Status:** design proposal, before implementation; nothing here is built yet · **Date:** 2026-10-10
+**Status:** design proposal; the engine core exists (`engine/`, benches in `sandbox/`), but no compiler, curve code or Frame Lab yet · **Date:** 2026-10-10
 **Readers:** the owner (designer) first, future implementers second.
 **Part of a larger system.** This document specifies the frame layer of Eloi, the engine described in [system.md](system.md). Where the two differ (stages, compiler, package layout and build order), system.md takes precedence. Milestone IDs here are unchanged; system.md groups them into phases.
 **Sources:** `docs/research/README.md` and `01`–`07`, four gap studies (animation, thresholds, editor architecture, curve maths), a curve catalog, five competing proposals and two judges' reviews. Both judges picked the Architect's proposal ("Elevations"). This document builds on that proposal and adds the strongest parts of the other four: the Frame Press Lab, Neatline's ranks and generalisation, Fount's assemblies and hinting, and Burin's stations and phase locks.

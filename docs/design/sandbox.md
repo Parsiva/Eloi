@@ -66,9 +66,9 @@ The sandbox steps come first. After them, the existing milestones (frame-engine.
 | Step | Contains | Visible result |
 |---|---|---|
 | **S0 Scaffold** | Vite + TS sandbox, router, bench index, empty dev panel; assets and content snapshot copied in | `npm run dev` opens the bench index in the Victorian theme. **Done.** |
-| **S1 Grid** | A hand-written frame spec (a TypeScript object; no compiler yet) → CSS grid; `frameEngine.ts` rings ported to draw over it | Grid bench with scrubber and overlays |
-| **S2 Boxes** | Box contract v0: static, DOM and canvas boxes; lifecycle; per-box errors; one shared ResizeObserver and IntersectionObserver; a frame clock with on-demand frames | Boxes bench passes its "done when" |
-| **S3 Chronicle** | Real content in the newspaper layout; drawn medallion corners and the crest placed from the sprite's sockets | Chronicle bench |
+| **S1 Grid** | A hand-written frame spec (a TypeScript object; no compiler yet) → CSS grid; `frameEngine.ts` rings ported to draw over it | Grid bench with scrubber and overlays. **Done.** |
+| **S2 Boxes** | Box contract v0: static, DOM and canvas boxes; lifecycle; per-box errors; one shared ResizeObserver and IntersectionObserver; a frame clock with on-demand frames | Boxes bench passes its "done when". **Done.** |
+| **S3 Chronicle** | Real content in the newspaper layout; drawn medallion corners and the crest placed from the sprite's sockets | Chronicle bench. **Done.** |
 | **Then** | M0 compiler skeleton (the spec becomes a document the compiler reads), M2 Frame Lab v0, M4 thresholds, M8 motion | as in frame-engine.md §13 |
 
 The portfolio is rebuilt on the engine once S3 is solid. That is when the Vue site is retired (frame-engine.md §12.5).
@@ -116,7 +116,7 @@ Built 2026-10-14 on branch `sandbox-s0`. Every bench in §3 exists and was check
 | Skins | Victorian ↔ mid-century on one structure; all 7 openings keep their DOM nodes |
 | Motion | Route changes are box diffs (main mounted once, sides mount and dispose); the marker travels to the active station; the back button works; reduced motion stops the conveyor |
 
-**Engine decisions made while building** (worth folding into system.md):
+**Engine decisions made while building** (folded into [system.md §20](system.md) as decisions 9–15):
 
 1. **Openings are engine-owned grid items; host content moves into them.** Each split is its own CSS grid, so nested rows in one column never stretch another column (one flat grid can't do that with `auto` rows). Datum names are still written on every grid line.
 2. **`when: 'visible'` means in the viewport; `ctx.visible` also needs the page shown.** Mounting is about the layout; animation is about someone watching.

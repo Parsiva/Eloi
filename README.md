@@ -12,7 +12,7 @@ One engine serves several hosts and styles:
 | City guessing game | mid-century flat-colour mouldings |
 | isidex | framing around the app (later) |
 
-**Status:** the [sandbox plan](docs/design/sandbox.md) is built: the engine draws frames, hosts boxes and runs six benches (Grid, Boxes, Chronicle, Specimens, Skins, Motion). No compiler yet. Code lives here as `engine/`, built and tested in `sandbox/`, a dev-only test-bench site ([plan](docs/design/sandbox.md)). The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
+**Status:** the [sandbox plan](docs/design/sandbox.md) is built: the engine draws frames, hosts boxes and runs six benches (Grid, Boxes, Chronicle, Specimens, Skins, Motion). There is no compiler and no curve code yet. The code is in `engine/` (source-only TypeScript) and is built and tested in `sandbox/`, a dev-only test-bench site. The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
 
 ## Read
 
@@ -26,12 +26,24 @@ One engine serves several hosts and styles:
 
 ## Run the sandbox
 
+Needs Node 22+ (the dev machine uses Homebrew: `brew install node`).
+
 ```sh
 npm install
 npm run dev        # the sandbox at http://localhost:5180
 npm test           # engine tests (Vitest)
 npm run typecheck
+npm run build
 ```
+
+## Edit a frame live
+
+```sh
+npm run dev        # the editing server: open http://localhost:5180/site.html
+npm run view       # the clean view of the same page: http://localhost:5181
+```
+
+The site page on the editing server has the editor (`editor/`) attached. Press **X** for the x-ray: every region of the frame is outlined over the live page (pink holds content, amber is reserved for decoration, dashed blue is a split). Click a region for a floating card with its properties, or drag the line between two regions. Every change is applied at once, saved to `sandbox/frames/chronicle.json`, and appears on the clean view without a reload. Undo is ⌘Z. To show the view on another device, run `npm run view -- --host`. The editor is loaded only by the dev server and is not in a production build.
 
 The sandbox (`sandbox/`) is a dev-only test-bench site with one page per idea being proven; press ` to toggle its dev panel. The engine (`engine/`) is source-only TypeScript that the sandbox imports directly. Plan and status: [docs/design/sandbox.md](docs/design/sandbox.md).
 

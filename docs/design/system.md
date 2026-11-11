@@ -1,6 +1,6 @@
 # Eloi: system design
 
-**Status:** high-level design, proposed; nothing here is built yet · **Date:** 2026-10-10
+**Status:** high-level design; the engine core and the sandbox benches are built (`engine/`, `sandbox/`), the compiler, curves and Studio are not · **Date:** 2026-10-10
 
 **Read this first.** This document explains how the whole system fits together and how its ideas actually work.
 
@@ -553,5 +553,12 @@ Each decision has a default, so work can start before you decide.
 | 6 | Default style scope | **CSS cascade layers**; shadow DOM as an option |
 | 7 | First style in the sandbox | **decided: Victorian chronicle** (straight rings plus drawn ornaments; curves later) |
 | 8 | First GPU box | **decided: a small WebGL2 toy**; isidex's regl engine later |
+| 9 | Who owns openings in the grid | **decided: the engine.** Openings are engine-owned grid items and host content moves into them. Each split is its own CSS grid, so nested rows in one column never stretch another; datum names are still written on every grid line |
+| 10 | What `when: 'visible'` means | **decided: in the viewport.** `ctx.visible` also needs the page shown: mounting is about the layout, animation is about someone watching |
+| 11 | First plan and hidden pages | **decided: the first plan is built synchronously in `mount()`**, and the scheduler uses a timer while the page is hidden, so a frame opened in a background tab is not empty |
+| 12 | When structure changes apply | **decided: structure waits for the next frame, drawing doesn't.** Inside a ResizeObserver callback the frame measures and draws at once; writes that change layout (plan, `--m`) are deferred, so the observer never loops |
+| 13 | Sprite line weight | **decided: a hair, not a scale.** `--eloi-weight` multiplies stroke widths so a medallion keeps ~0.9 px lines at any size (frame-engine.md §3.1) |
+| 14 | Knockouts | **decided: a mask, not a paper-coloured fill**, so the paper texture shows through where a motif hides the rules |
+| 15 | Route updates and view transitions | **decided: route updates run inside the view transition** (`setRoute(route, during)`), so the "before" snapshot is the old state |
 
 Still pending from the frame design: two-ribbon twist or plait, a bottom garland, the flame's growth rate and leaf sizing (frame-engine.md §15).

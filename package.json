@@ -2,14 +2,20 @@
   "name": "eloi",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": [
     "engine",
+    "editor",
     "sandbox"
   ],
   "scripts": {
     "dev": "npm run dev -w @eloi/sandbox",
     "build": "npm run build -w @eloi/sandbox",
-    "test": "npm run test -w @eloi/engine",
-    "typecheck": "npm run typecheck --workspaces"
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces",
+    "check": "npm run typecheck && npm test && npm run build",
+    "view": "npm run dev:view -w @eloi/sandbox"
   }
 }

@@ -64,7 +64,7 @@ export function startRouter(outlet: HTMLElement, resolve: Resolve): void {
     navigation.addEventListener('navigate', (e) => {
       if (!e.canIntercept || e.hashChange || e.downloadRequest !== null || e.formData) return
       const url = new URL(e.destination.url)
-      if (url.origin !== location.origin) return
+      if (url.origin !== location.origin || url.pathname.endsWith('.html')) return // other pages load normally
       e.intercept({ handler: () => render(url) })
     })
   } else {
@@ -73,7 +73,7 @@ export function startRouter(outlet: HTMLElement, resolve: Resolve): void {
       const a = (e.target as Element | null)?.closest('a')
       if (!a || a.target || a.hasAttribute('download')) return
       const url = new URL(a.href)
-      if (url.origin !== location.origin) return
+      if (url.origin !== location.origin || url.pathname.endsWith('.html')) return
       e.preventDefault()
       if (url.href === location.href) return
       history.pushState(null, '', url)

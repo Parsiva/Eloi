@@ -6,7 +6,7 @@ import { h } from '../dom'
 import type { Page } from '../router'
 import { attachDev } from '../devpanel/devtools'
 import { benchHeader, button, stage } from './common'
-import { chronicle } from '../frames/chronicle'
+import { chronicle, follow } from '../frames/chronicle'
 import { chronicleSlots } from '../frames/chronicle-content'
 import { midcentury, victorian } from '../frames/skins'
 import { handDrawn } from '../frames/sprite'
@@ -16,7 +16,8 @@ const page: Page = (outlet, signal) => {
   const { wrap, stage: st } = stage()
   const host = h('div', {}, ...chronicleSlots())
   st.append(host)
-  const frame = mount(host, chronicle, { skin: victorian, sprite: handDrawn })
+  const frame = mount(host, chronicle.value, { skin: victorian, sprite: handDrawn })
+  follow(frame, signal)
   attachDev(frame, st, 'skins', signal)
   signal.addEventListener('abort', () => void frame.dispose())
 

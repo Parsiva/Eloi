@@ -27,6 +27,7 @@ export class Scheduler {
   // still settle in a background tab (animations stop on their own, since boxes aren't visible).
   request(job: Job): void {
     this.queued.add(job)
+    this.watchVisibility()
     if (this.raf || this.timer) return
     this.stats.pending = true
     if (document.hidden) {
@@ -62,7 +63,11 @@ export class Scheduler {
   }
 
   // A frame requested just before the page was hidden would wait until it is shown again.
-  constructor() {
+  // Attached on the first request so importing this module never touches the DOM.
+  private watching = false
+  private watchVisibility() {
+    if (this.watching || typeof document === 'undefined') return
+    this.watching = true
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden || !this.raf) return
       cancelAnimationFrame(this.raf)
