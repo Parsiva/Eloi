@@ -1,0 +1,6 @@
+/* The site page: the frame is the page, with a margin of paper around it. */
+#site {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: calc(var(--gutter) * 1.5) var(--gutter) calc(var(--gutter) * 5);
+}

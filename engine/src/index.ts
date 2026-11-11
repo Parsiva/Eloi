@@ -12,3 +12,13 @@ export { validatePlan, walkParts, slotsOf, isOpening, isSplit, sizeToCss } from 
 export { drawMembers, fitRepeat, profileDepth } from './draw/members'
 export type { Rect } from './draw/members'
 export type * from './spec'
+
+// Frame graphs: nodes, lines and rules solved for a screen (docs/design/frame-graph.md).
+export { mountGraph } from './graph/mount'
+export type { GraphHandle } from './graph/mount'
+export { solve } from './graph/solve'
+export type { Issue, Solved, SolvedLine, SolvedNode, SolvedOpening } from './graph/solve'
+export { compile, evaluate, problemWith, FUNCTION_NAMES } from './graph/expr'
+export type { Num, Env } from './graph/expr'
+export { CORNERS, isCorner } from './graph/doc'
+export type { Corner as GraphCorner, Edge as GraphEdge, End, FrameGraph, Layer, LineDef, NodeDef, OpeningDef, Place, Variant } from './graph/doc'

@@ -1,0 +1,400 @@
+{
+  "id": "parkington",
+  "graph": 1,
+  "module": "clamp(min(w, h) / 62, 8.5, 15)",
+  "params": {
+    "edge": 0.9,
+    "medR": "W < 56 ? 3 : 4.4",
+    "lap": 0.85,
+    "collar": "lap * 2",
+    "medIn": "edge + medR + collar + 1.1",
+    "footR": 1.5,
+    "footIn": "medIn - medR + footR",
+    "amp": 0.5,
+    "wave": 4.6,
+    "takeoff": "medR * 2.2",
+    "landing": 3,
+    "dateH": 2.7,
+    "sideW": "W > 66 ? clamp(W * 0.17, 13, 19) : 0",
+    "rightW": "W > 94 ? clamp(W * 0.16, 14, 18) : 0"
+  },
+  "rules": {
+    "twist": [
+      { "when": "len < wave * 1.5", "offset": "0", "note": "Too short to twist: run straight." },
+      {
+        "when": "len < wave * 4",
+        "cycles": 1,
+        "offset": "amp * swell() * sin(tau * (t + phase))",
+        "note": "Room for one turn only: a single swelling loop."
+      },
+      {
+        "cycles": "len / wave",
+        "offset": "amp * sin(tau * (n * t + phase)) * ramp()",
+        "note": "Whole turns, fitted so the strand meets its node on the spine."
+      }
+    ],
+    "rail": [
+      { "when": "len < wave * 1.5", "offset": "side * 0.3" },
+      {
+        "offset": "side * (0.3 + (amp + 0.25) * ramp())",
+        "note": "Opens around the twist and closes with it."
+      }
+    ],
+    "scallop": [
+      { "when": "len < 6", "offset": "0" },
+      { "cycles": "len / 2.4", "offset": "0.3 * abs(sin(pi * n * t)) * ramp(1.5)" }
+    ],
+    "zigzag": [
+      { "when": "len < 8", "offset": "0" },
+      { "cycles": "len / 1.5", "offset": "0.34 * tri(n * t) * ramp(1.2)" }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "o.tl",
+      "at": { "from": "tl", "dx": "edge", "dy": "edge" },
+      "note": "Outer border corners: one step in from each screen corner."
+    },
+    { "id": "o.tr", "at": { "from": "tr", "dx": "edge", "dy": "edge" } },
+    { "id": "o.bl", "at": { "from": "bl", "dx": "edge", "dy": "edge" } },
+    { "id": "o.br", "at": { "from": "br", "dx": "edge", "dy": "edge" } },
+    {
+      "id": "med.tl",
+      "at": { "from": "tl", "dx": "medIn", "dy": "medIn" },
+      "r": "medR",
+      "note": "Top medallions. Three leading lines wind around each before setting off.",
+      "glyph": [
+        { "kind": "circle", "r": 1, "weight": 1.4, "fill": "paper" },
+        { "kind": "circle", "r": 0.88, "weight": 0.6 },
+        { "kind": "dots", "n": 20, "r": 0.94, "size": 0.018, "fill": "ink", "weight": 0.5 },
+        { "kind": "petals", "n": 8, "r0": 0.2, "r1": 0.8, "width": 0.95, "weight": 0.9 },
+        {
+          "kind": "petals",
+          "n": 8,
+          "r0": 0.2,
+          "r1": 0.52,
+          "width": 0.7,
+          "turn": 22.5,
+          "weight": 0.6
+        },
+        { "kind": "circle", "r": 0.17, "weight": 0.9, "fill": "paper" }
+      ]
+    },
+    {
+      "id": "med.tr",
+      "at": { "from": "tr", "dx": "medIn", "dy": "medIn" },
+      "r": "medR",
+      "glyph": [
+        { "kind": "circle", "r": 1, "weight": 1.4, "fill": "paper" },
+        { "kind": "circle", "r": 0.88, "weight": 0.6 },
+        { "kind": "dots", "n": 20, "r": 0.94, "size": 0.018, "fill": "ink", "weight": 0.5 },
+        { "kind": "petals", "n": 8, "r0": 0.2, "r1": 0.8, "width": 0.95, "weight": 0.9 },
+        {
+          "kind": "petals",
+          "n": 8,
+          "r0": 0.2,
+          "r1": 0.52,
+          "width": 0.7,
+          "turn": 22.5,
+          "weight": 0.6
+        },
+        { "kind": "circle", "r": 0.17, "weight": 0.9, "fill": "paper" }
+      ]
+    },
+    {
+      "id": "foot.bl",
+      "at": { "from": "bl", "dx": "footIn", "dy": "footIn" },
+      "r": "footR",
+      "note": "Bottom bosses. They receive the side lines, which curl under them.",
+      "glyph": [
+        { "kind": "circle", "r": 1, "weight": 1.2, "fill": "paper" },
+        { "kind": "spiral", "turns": 2.25, "r0": 0.05, "r1": 0.82, "turn": 180, "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "foot.br",
+      "at": { "from": "br", "dx": "footIn", "dy": "footIn" },
+      "r": "footR",
+      "glyph": [
+        { "kind": "circle", "r": 1, "weight": 1.2, "fill": "paper" },
+        { "kind": "spiral", "turns": 2.25, "r0": 0.05, "r1": 0.82, "turn": 180, "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "crown",
+      "at": { "on": "lead.top", "t": 0.5 },
+      "r": 1.5,
+      "note": "Rides the middle of the top leading line.",
+      "glyph": [
+        { "kind": "polygon", "sides": 4, "r": 1, "weight": 1.1, "fill": "paper" },
+        { "kind": "petals", "n": 4, "r0": 0.15, "r1": 0.78, "width": 0.6, "weight": 0.7 },
+        { "kind": "circle", "r": 0.16, "fill": "ink", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "date.l",
+      "at": { "from": "med.tl", "dx": "-(medR + lap)", "dy": "medR + collar + dateH" },
+      "r": 0.42,
+      "glyph": [{ "kind": "circle", "weight": 1, "fill": "paper" }],
+      "note": "Where the dateline rule meets the side lines."
+    },
+    {
+      "id": "date.r",
+      "at": { "from": "med.tr", "dx": "-(medR + lap)", "dy": "medR + collar + dateH" },
+      "r": 0.42,
+      "glyph": [{ "kind": "circle", "weight": 1, "fill": "paper" }]
+    },
+    {
+      "id": "key",
+      "at": { "on": "date.rule", "t": 0.5 },
+      "r": 1.1,
+      "note": "Keystone at the centre of the dateline rule.",
+      "glyph": [
+        { "kind": "polygon", "sides": 4, "r": 1, "weight": 1, "fill": "paper" },
+        { "kind": "polygon", "sides": 4, "r": 0.55, "weight": 0.6 },
+        { "kind": "circle", "r": 0.14, "fill": "ink", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "base.l",
+      "at": { "from": "foot.bl", "dx": "-(footR + lap)", "dy": "footR + lap + 0.9" },
+      "r": 0.42,
+      "glyph": [{ "kind": "circle", "weight": 1, "fill": "paper" }],
+      "note": "Ends of the base rule, on the side lines just above the bosses."
+    },
+    {
+      "id": "base.r",
+      "at": { "from": "foot.br", "dx": "-(footR + lap)", "dy": "footR + lap + 0.9" },
+      "r": 0.42,
+      "glyph": [{ "kind": "circle", "weight": 1, "fill": "paper" }]
+    },
+    {
+      "id": "seal",
+      "at": { "on": "base.rule", "t": 0.5 },
+      "r": 1.25,
+      "glyph": [
+        { "kind": "circle", "r": 1, "weight": 1, "fill": "paper" },
+        { "kind": "rays", "n": 12, "r0": 0.35, "r1": 0.8, "weight": 0.6 },
+        { "kind": "circle", "r": 0.22, "weight": 0.8 }
+      ]
+    },
+    {
+      "id": "waist.l",
+      "at": { "on": "lead.left", "t": 0.6 },
+      "r": 1.3,
+      "when": "H > 50",
+      "note": "Mid-side ornaments, only when the screen is tall enough to want them.",
+      "glyph": [
+        { "kind": "polygon", "sides": 4, "r": 1, "weight": 1, "fill": "paper" },
+        { "kind": "petals", "n": 2, "r0": 0.1, "r1": 0.8, "width": 0.35, "weight": 0.7 },
+        { "kind": "circle", "r": 0.14, "fill": "ink", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "waist.r",
+      "at": { "on": "lead.right", "t": 0.6 },
+      "r": 1.3,
+      "when": "H > 50",
+      "glyph": [
+        { "kind": "polygon", "sides": 4, "r": 1, "weight": 1, "fill": "paper" },
+        { "kind": "petals", "n": 2, "r0": 0.1, "r1": 0.8, "width": 0.35, "weight": 0.7 },
+        { "kind": "circle", "r": 0.14, "fill": "ink", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "col.l.t",
+      "at": { "from": "date.l", "dx": "amp + 0.9 + sideW" },
+      "note": "The left column rule hangs from the dateline; its width is a threshold on the screen."
+    },
+    { "id": "col.l.b", "at": { "x": "col.l.t", "y": "base.l" } },
+    { "id": "col.r.t", "at": { "from": "date.r", "dx": "amp + 0.9 + rightW" } },
+    { "id": "col.r.b", "at": { "x": "col.r.t", "y": "base.r" } }
+  ],
+  "lines": [
+    {
+      "id": "border",
+      "from": "o.tl",
+      "via": ["o.tr", "o.br", "o.bl"],
+      "to": "o.tl",
+      "weight": 1.6,
+      "note": "The outer border, corner to corner."
+    },
+    { "id": "border.in", "along": "border", "rule": [{ "offset": 0.34 }], "weight": 0.6 },
+    {
+      "id": "lead.top",
+      "from": { "node": "med.tl", "port": 180, "wrap": "cw", "gap": "collar", "ease": "takeoff" },
+      "to": { "node": "med.tr", "port": 180, "wrap": "ccw", "gap": "collar", "ease": "takeoff" },
+      "draw": false,
+      "note": "Leading line: from the outside of the left medallion, over it, across the top, and down the outside of the right one."
+    },
+    {
+      "id": "top.a",
+      "along": "lead.top",
+      "rule": "twist",
+      "vars": { "phase": 0 },
+      "weave": "top",
+      "weight": 1.1,
+      "note": "Sine strand."
+    },
+    {
+      "id": "top.b",
+      "along": "lead.top",
+      "rule": "twist",
+      "vars": { "phase": 0.25 },
+      "weave": "top",
+      "weight": 1.1,
+      "note": "Cosine strand: the same rule a quarter turn on."
+    },
+    {
+      "id": "lead.under",
+      "from": { "node": "med.tl", "port": 180, "wrap": "ccw", "gap": "collar" },
+      "to": { "node": "med.tr", "port": 180, "wrap": "cw", "gap": "collar" },
+      "weight": 1.1,
+      "note": "Leading line: from the same point, under the medallion, and along the underside of the masthead."
+    },
+    {
+      "id": "under.2",
+      "along": "lead.under",
+      "rule": [{ "offset": "-0.3 * ramp(4)" }],
+      "weight": 0.6
+    },
+    {
+      "id": "lead.left",
+      "from": { "node": "med.tl", "port": 0, "wrap": "ccw", "gap": "lap", "ease": "takeoff" },
+      "to": { "node": "foot.bl", "port": 0, "wrap": "cw", "gap": "lap", "ease": "landing" },
+      "draw": false,
+      "note": "Leading line: over the medallion, down the side, and under the boss."
+    },
+    {
+      "id": "left.a",
+      "along": "lead.left",
+      "rule": "twist",
+      "vars": { "phase": 0 },
+      "weave": "left",
+      "weight": 1.1
+    },
+    {
+      "id": "left.b",
+      "along": "lead.left",
+      "rule": "twist",
+      "vars": { "phase": 0.25 },
+      "weave": "left",
+      "weight": 1.1
+    },
+    {
+      "id": "left.rail.out",
+      "along": "lead.left",
+      "rule": "rail",
+      "vars": { "side": 1 },
+      "weight": 0.6
+    },
+    {
+      "id": "left.rail.in",
+      "along": "lead.left",
+      "rule": "rail",
+      "vars": { "side": -1 },
+      "weight": 0.6
+    },
+    {
+      "id": "lead.right",
+      "from": { "node": "med.tr", "port": 0, "wrap": "ccw", "gap": "lap", "ease": "takeoff" },
+      "to": { "node": "foot.br", "port": 0, "wrap": "cw", "gap": "lap", "ease": "landing" },
+      "draw": false
+    },
+    {
+      "id": "right.a",
+      "along": "lead.right",
+      "rule": "twist",
+      "vars": { "phase": 0 },
+      "weave": "right",
+      "weight": 1.1
+    },
+    {
+      "id": "right.b",
+      "along": "lead.right",
+      "rule": "twist",
+      "vars": { "phase": 0.25 },
+      "weave": "right",
+      "weight": 1.1
+    },
+    {
+      "id": "right.rail.out",
+      "along": "lead.right",
+      "rule": "rail",
+      "vars": { "side": 1 },
+      "weight": 0.6
+    },
+    {
+      "id": "right.rail.in",
+      "along": "lead.right",
+      "rule": "rail",
+      "vars": { "side": -1 },
+      "weight": 0.6
+    },
+    {
+      "id": "date.rule",
+      "from": "date.l",
+      "to": "date.r",
+      "weight": 1.1,
+      "note": "The dateline rule, strung between the side lines."
+    },
+    { "id": "date.scallop", "along": "date.rule", "rule": "scallop", "weight": 0.7 },
+    { "id": "col.l", "from": "col.l.t", "to": "col.l.b", "weight": 0.9, "when": "sideW > 0" },
+    { "id": "col.l.2", "along": "col.l", "rule": [{ "offset": "0.28 * ramp(2)" }], "weight": 0.5 },
+    { "id": "col.r", "from": "col.r.t", "to": "col.r.b", "weight": 0.9, "when": "rightW > 0" },
+    { "id": "col.r.2", "along": "col.r", "rule": [{ "offset": "0.28 * ramp(2)" }], "weight": 0.5 },
+    { "id": "base.rule", "from": "base.l", "to": "base.r", "draw": false },
+    { "id": "base.hi", "along": "base.rule", "rule": [{ "offset": -0.45 }], "weight": 0.9 },
+    { "id": "base.lo", "along": "base.rule", "rule": [{ "offset": 0.45 }], "weight": 0.9 },
+    { "id": "base.zig", "along": "base.rule", "rule": "zigzag", "weight": 0.7 }
+  ],
+  "openings": [
+    {
+      "id": "masthead",
+      "left": { "of": "med.tl", "add": "r + collar + 0.6" },
+      "right": { "of": "med.tr", "add": "-(r + collar + 0.6)" },
+      "top": { "of": "med.tl", "add": "-(r + collar) + amp + 0.5" },
+      "bottom": { "of": "med.tl", "add": "r + collar - 0.5" },
+      "scroll": false
+    },
+    {
+      "id": "dateline",
+      "left": { "of": "date.l", "add": "amp + 1.7" },
+      "right": { "of": "date.r", "add": "-(amp + 1.7)" },
+      "top": { "of": "med.tl", "add": "r + collar + 0.2" },
+      "bottom": { "of": "date.l", "add": -0.2 },
+      "scroll": false
+    },
+    {
+      "id": "left",
+      "left": { "of": "date.l", "add": "amp + 1.3" },
+      "right": { "of": "col.l.t", "add": -0.9 },
+      "top": { "of": "date.l", "add": 1 },
+      "bottom": { "of": "base.l", "add": -1 },
+      "when": "sideW > 0"
+    },
+    {
+      "id": "main",
+      "left": { "of": "col.l.t", "add": "sideW > 0 ? 1.2 : 0.4" },
+      "right": { "of": "col.r.t", "add": "rightW > 0 ? -1.2 : -0.4" },
+      "top": { "of": "date.l", "add": 1 },
+      "bottom": { "of": "base.l", "add": -1 }
+    },
+    {
+      "id": "right",
+      "left": { "of": "col.r.t", "add": 0.9 },
+      "right": { "of": "date.r", "add": "-(amp + 1.3)" },
+      "top": { "of": "date.r", "add": 1 },
+      "bottom": { "of": "base.r", "add": -1 },
+      "when": "rightW > 0"
+    },
+    {
+      "id": "foot",
+      "left": { "of": "foot.bl", "add": "r + lap + 1" },
+      "right": { "of": "foot.br", "add": "-(r + lap + 1)" },
+      "top": { "of": "base.l", "add": 0.6 },
+      "bottom": { "of": "o.bl", "add": -0.5 },
+      "scroll": false
+    }
+  ]
+}

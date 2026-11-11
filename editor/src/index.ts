@@ -647,3 +647,5 @@ function readXray(): boolean {
   }
 }
 
+export { attachGraphEditor } from './graph'
+export type { GraphEditorHandle, GraphEditorOptions } from './graph'

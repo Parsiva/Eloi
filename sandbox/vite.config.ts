@@ -21,6 +21,6 @@ export default defineConfig(({ mode }) => {
     server: { port: view ? 5181 : 5180, strictPort: true },
     cacheDir: view ? 'node_modules/.vite-view' : 'node_modules/.vite',
     plugins: [eloiFrames({ dir: fileURLToPath(new URL('./frames', import.meta.url)), readOnly: view }), ...(view ? [viewRoot] : [])],
-    build: { rollupOptions: { input: ['index.html', 'site.html'] } },
+    build: { rollupOptions: { input: ['index.html', 'site.html', 'layout.html'] } },
   }
 })

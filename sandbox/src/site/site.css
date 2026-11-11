@@ -1,6 +1,59 @@
-/* The site page: the frame is the page, with a margin of paper around it. */
-#site {
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: calc(var(--gutter) * 1.5) var(--gutter) calc(var(--gutter) * 5);
+/* The site page: the frame is the screen. Nothing outside it, and the page itself never scrolls. */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.site {
+  position: fixed;
+  inset: 0;
+  color: var(--ink);
+  background: var(--paper) var(--paper-texture);
+  font-family: var(--font-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Content inhabits its opening: it takes the opening's size and scrolls inside it if it must. */
+.site .eloi-opening {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+
+.site .chron-mast,
+.site .chron-dateline,
+.site .chron-foot {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.site .chron-mast__title {
+  font-size: clamp(1.3rem, min(6.4cqi, 46cqb), 4.6rem);
+}
+
+.site .chron-mast__sub {
+  font-size: clamp(8px, 1.5cqi, 10.5px);
+}
+
+.site .chron-dateline {
+  padding: 0 0.4em;
+  gap: 1em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.site .chron-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 0;
+  padding: 0;
+}
+
+.site .chron-upcoming {
+  margin-top: 2em;
+  padding-top: 1.2em;
+  border-top: 1px solid var(--rule);
 }

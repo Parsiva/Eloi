@@ -12,11 +12,12 @@ One engine serves several hosts and styles:
 | City guessing game | mid-century flat-colour mouldings |
 | isidex | framing around the app (later) |
 
-**Status:** the [sandbox plan](docs/design/sandbox.md) is built: the engine draws frames, hosts boxes and runs six benches (Grid, Boxes, Chronicle, Specimens, Skins, Motion). There is no compiler and no curve code yet. The code is in `engine/` (source-only TypeScript) and is built and tested in `sandbox/`, a dev-only test-bench site. The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
+**Status:** the direction changed on 2026-11-10. A frame is now a graph: decorations are nodes placed by their relationships, starting from the four corners of the screen; lines leave one node and are received by another, shaped by rules; content lives in the openings the frame leaves, and the page does not scroll. This is built in `engine/src/graph/` with a first placeholder frame and an editor ([docs/design/frame-graph.md](docs/design/frame-graph.md)). The earlier box-layout engine and its six sandbox benches are still in the repo. There is no compiler yet. The current Vue portfolio is in `sites/portfolio/` as reference and the source of assets.
 
 ## Read
 
-1. **[docs/design/system.md](docs/design/system.md)**: the whole system (stages, compiler, scene, scheduler, executors, motion, host contract, packages, phases, decisions). Start here.
+1. **[docs/design/frame-graph.md](docs/design/frame-graph.md)**: the frame graph, the current model. Start here.
+1. [docs/design/system.md](docs/design/system.md): the whole system as first planned (stages, compiler, scene, scheduler, executors, motion, host contract, packages, phases, decisions).
 2. [docs/design/frame-engine.md](docs/design/frame-engine.md): the frame layer in detail ("Elevations"): vocabulary, document format, Frame Lab, thresholds, milestones.
 3. [docs/design/sandbox.md](docs/design/sandbox.md): the sandbox, where the engine is built first.
 4. [docs/design/future-ideas.md](docs/design/future-ideas.md): parked ideas (GPU engine, map engine), each with its trigger.
@@ -43,7 +44,11 @@ npm run dev        # the editing server: open http://localhost:5180/site.html
 npm run view       # the clean view of the same page: http://localhost:5181
 ```
 
-The site page on the editing server has the editor (`editor/`) attached. Press **X** for the x-ray: every region of the frame is outlined over the live page (pink holds content, amber is reserved for decoration, dashed blue is a split). Click a region for a floating card with its properties, or drag the line between two regions. Every change is applied at once, saved to `sandbox/frames/chronicle.json`, and appears on the clean view without a reload. Undo is ⌘Z. To show the view on another device, run `npm run view -- --host`. The editor is loaded only by the dev server and is not in a production build.
+The site page is one screen: the frame is generated for the window from `sandbox/frames/parkington.json` and redrawn when the window changes size, and the content scrolls inside its openings.
+
+On the editing server the page has the editor (`editor/`) attached. Press **X** for the x-ray: nodes are amber, with a dotted link to what each is measured from; leading lines are dashed cyan; openings are pink. Click anything for a floating card with its placement, rule and look, and drag a node to move it. The toolbar opens the frame's parameters, its rules, and a list of everything in it. Every change is applied at once, saved to the JSON file, and appears on the clean view without a reload. Undo is ⌘Z. To show the view on another device, run `npm run view -- --host`. The editor is loaded only by the dev server and is not in a production build.
+
+The earlier box-layout version of the page, with its own editor, is at `/layout.html`.
 
 The sandbox (`sandbox/`) is a dev-only test-bench site with one page per idea being proven; press ` to toggle its dev panel. The engine (`engine/`) is source-only TypeScript that the sandbox imports directly. Plan and status: [docs/design/sandbox.md](docs/design/sandbox.md).
 

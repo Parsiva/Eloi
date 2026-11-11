@@ -34,14 +34,16 @@ export function eloiFrames(options: EloiFramesOptions): Plugin {
         })
         req.on('end', () => {
           if (size > 1_000_000) return reply(413, 'Frame document too large.')
-          let doc: { id?: unknown; plans?: unknown }
+          let doc: { id?: unknown; plans?: unknown; graph?: unknown; nodes?: unknown }
           try {
             doc = JSON.parse(Buffer.concat(chunks).toString('utf8'))
           } catch {
             return reply(400, 'Not valid JSON.')
           }
-          if (!doc || doc.id !== id || !Array.isArray(doc.plans) || doc.plans.length === 0)
-            return reply(400, `Expected a frame document with id "${id}" and at least one plan.`)
+          // Two kinds of document: a frame graph (nodes and lines) or the older box layout (plans).
+          const graph = doc?.graph === 1 && Array.isArray(doc.nodes)
+          const layout = Array.isArray(doc?.plans) && doc.plans.length > 0
+          if (!doc || doc.id !== id || !(graph || layout)) return reply(400, `Expected a frame document with id "${id}".`)
           mkdir(options.dir, { recursive: true })
             .then(() => writeFile(join(options.dir, `${id}.json`), formatFrame(doc)))
             .then(

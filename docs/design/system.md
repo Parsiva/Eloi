@@ -560,5 +560,6 @@ Each decision has a default, so work can start before you decide.
 | 13 | Sprite line weight | **decided: a hair, not a scale.** `--eloi-weight` multiplies stroke widths so a medallion keeps ~0.9 px lines at any size (frame-engine.md §3.1) |
 | 14 | Knockouts | **decided: a mask, not a paper-coloured fill**, so the paper texture shows through where a motif hides the rules |
 | 15 | Route updates and view transitions | **decided: route updates run inside the view transition** (`setRoute(route, during)`), so the "before" snapshot is the old state |
+| 16 | What a frame is | **decided 2026-11-10: a graph of nodes and lines solved for the screen**, not a layout of boxes. Four corner nodes are given; decorations are nodes placed by relationships; lines leave and meet nodes under rules; content inhabits the openings and the page does not scroll ([frame-graph.md](frame-graph.md)). The box layout (§11, frame-engine.md) stays for the sandbox benches only |
 
 Still pending from the frame design: two-ribbon twist or plait, a bottom garland, the flame's growth rate and leaf sizing (frame-engine.md §15).

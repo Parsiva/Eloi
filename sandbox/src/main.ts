@@ -10,7 +10,7 @@ import { indexPage, notFoundPage, plannedPage } from './benches/pages'
 import { mountDevPanel } from './devpanel/devpanel'
 
 const links = [h('a', { href: '/' }, 'Index'), ...benches.map((b) => h('a', { href: `/bench/${b.id}` }, b.title))]
-const siteLink = h('a', { href: '/site.html', title: 'The chronicle as a site, with the editor' }, 'Site ✎')
+const siteLink = h('a', { href: '/site.html', title: 'The site in its frame, with the editor' }, 'Site ✎')
 const outlet = h('main', { class: 'outlet' })
 
 document.querySelector('#app')!.append(
